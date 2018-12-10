@@ -1,7 +1,7 @@
 # GURU3 (GenericUserRegistrationUtility v3)
 [GURU3](https://guru3.eventphone.de) is our new and shiny self registration interface for our phone infrastructure at all eventphone events.
 
-Please do not open issue for general support requests. If you have a problem with your extension or device just visit us at the PoC Helpdesk during an event or use our [ticket system](https://guru3.eventphone.de/support/).
+Please do not open issues for general support requests. If you have a problem with your extension or device just visit us at the PoC Helpdesk during an event or use our [ticket system](https://guru3.eventphone.de/support/).
 
 ## where is the code?
 
