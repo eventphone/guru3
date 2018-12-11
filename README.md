@@ -3,7 +3,7 @@
 
 Please do not open issues for general support requests. If you have a problem with your extension or device just visit us at the PoC Helpdesk during an event or use our [ticket system](https://guru3.eventphone.de/support/).
 
-## where is the code?
+## Where is the code?
 
 Because of copyright issues we are not yet able to publish the full source code, but it will be added as soon as possible. Right now we want to use the issue tracker to publicly discuss ideas, feature request, bugs and improvements.
 
