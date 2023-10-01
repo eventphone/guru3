@@ -1,0 +1,44 @@
+{% extends "master.html" %}
+
+{% block content %}
+
+<h1>Suggestions for inventory DECTs</h1>
+
+<form method="POST" action="{% url 'inventory.do_dect_suggestions' %}">
+    {% csrf_token %}
+    <table class="table table-striped">
+        <thead><tr>
+            <th>IPEI</th>
+            <th>Event</th>
+            <th>Extension</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th>Item</th>
+            <th>Barcode</th>
+            <th>✔</th>
+            <th>✘</th>
+        </tr></thead>
+        <tbody>
+        {% for object in object_list %}
+        <tr>
+            <td>{{object.handset.ipei}}</td>
+            <td>{{object.extension.event}}</td>
+            <td>{{object.extension.extension}}</td>
+            <td>{{object.extension.name}}</td>
+            <td>{{object.item.itemType}}</td>
+            <td>{{object.item.description}}</td>
+            <td>{{object.item.barcode}}</td>
+            <td><div class="form-check">
+                <input type="checkbox" class="form-check-input" name="take" value="{{object.pk}}" />
+            </div></td>
+            <td><div class="form-check">
+                <input type="checkbox" class="form-check-input" name="del" value="{{object.pk}}" />
+            </div></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary">Process changes</button>
+</form>
+
+{% endblock %}

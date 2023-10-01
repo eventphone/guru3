@@ -1,0 +1,8 @@
+{% load guru3 %}
+                {% if ext.type == "DECT" %}
+                <span class="oi oi-key" data-toggle="popover" title="Token: 9955-{{ext.registerToken|tokenformat}}" data-content="Your DECT number claim token is 9955-{{ext.registerToken|tokenformat}}. Call this number on your DECT!"></span>
+                {% elif ext.type == "GSM" %}
+                <span class="oi oi-key" data-toggle="popover" title="Token: 9955-{{ext.registerToken|tokenformat}}" data-html="true" data-content='Your GSM number claim token is <a href="tel:9955{{ext.registerToken}}">9955-{{ext.registerToken|tokenformat}}</a>. Call this number on your GSM phone!'></span>
+                {% elif ext.type == "SIP" %}
+                <span class="oi oi-key" data-toggle="popover" title="Your SIP account details" data-html="true" data-content='Server/Registrar: {{ext.sip_server}}<br />AuthUser: {{ext.extension}}<br />Password: <span style="font-family:monospace,monospace;">{{ext.sipPassword}}</span><br><form method="POST" action="{% url "extension.regeneratesippassword" pk=ext.pk %}">{% csrf_token %}<button title="Regenerate Password" type="Submit" class="btn btn-danger mt-2">Regenerate Password</button></form>'></span>
+                {% endif %}

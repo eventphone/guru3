@@ -1,0 +1,24 @@
+[Unit]
+Description=Guru3 Celery Service
+After=network.target redis.service
+Wants=redis.service
+
+[Service]
+Type=forking
+RuntimeDirectory=celery_guru3
+User=guru3
+Group=guru3
+WorkingDirectory=/opt/guru3
+ExecStart=/bin/sh -c '/opt/guru3/venv/bin/celery multi start w1 \
+  -A guru3 -B --pidfile=/var/run/celery_guru3/celery.pid \
+  --logfile=/var/log/guru3/celery.log --loglevel=INFO'
+ExecStop=/bin/sh -c '/opt/guru3/venv/bin/celery multi stopwait w1 \
+  --pidfile=/var/run/celery_guru3/celery.pid'
+ExecReload=/bin/sh -c '/opt/guru3/venv/bin/celery multi restart w1 \
+  -A guru3 -B --pidfile=/var/run/celery_guru3/celery.pid \
+  --logfile=/var/log/guru3/celery.log --loglevel=INFO'
+Restart=always
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

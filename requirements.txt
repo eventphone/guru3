@@ -1,0 +1,20 @@
+channels==3.0.*
+celery[redis]==5.3.*
+crispy-bootstrap4
+daphne>=2.4.1
+django==4.0.*
+django-autocomplete-light>=3.9.0rc1
+django-crispy-forms
+django-registration==3.*
+django-simple-captcha
+django-timezone-field
+django-wkhtmltopdf
+jsonschema
+pycryptodome
+pylibdmtx
+python-magic==0.4.15
+# Hack: Fix pytz to old version, otherwise it includes timezones that are not known to Debian tzdata :/
+pytz==2021.1
+redis
+names
+netaddr

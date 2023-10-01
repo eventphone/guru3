@@ -1,0 +1,145 @@
+{% extends "master.html" %}
+{% load legacy_url %}
+{% load crispy_forms_tags %}
+{% load formstyle %}
+
+{% block content %}
+<h1>Extension {{object.extension}} ({{object.name}})</h1>
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item">
+        <a class="nav-link" href="{% url "extension.edit" pk=object.pk %}{% if request.GET.next_url %}?next_url={{request.GET.next_url}}{% endif %}">Config</a>
+    </li>
+    {% if not object.type == "ANNOUNCEMENT" and not object.type == "SPECIAL" and not object.type == "APP" %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url "extension.multiring" pk=object.pk %}{% if request.GET.next_url %}?next_url={{request.GET.next_url}}{% endif %}">Multiring</a>
+    </li>
+    {% endif %}
+    <li class="nav-item mr-3">
+        <a class="nav-link active" href="#">References</a>
+    </li>
+    {% if object.type == "DECT" %}
+    <li class="nav-item">
+        <div class="form-actions">
+            <form method="POST" action="{% url "extension.unsubscribe" pk=object.pk %}">
+            {% csrf_token %}
+            <button title="Unsubscribe's your current DECT phone, which renders your extensions available again." type="Submit" class="btn btn-danger">
+                Unsubscribe DECT
+            </button>
+            </form>
+        </div>
+    </li>
+    {% endif %}
+</ul>
+
+<h2>Extension references</h2>
+<table class="table table-striped">
+    <thead><tr>
+        <th>Extension</th>
+        <th>Name</th>
+        <th>Location</th>
+        <th>Reference type</th>
+        <th>State</th>
+        <th>Delay [s]</th>
+        <th>Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for invite in invites %}
+    <tr>
+        <td>
+            {% if invite.group.inPhonebook %}
+            <span class="oi oi-eye" title="Listed in Phonebook" aria-hidden="true"></span>
+            {% else %}
+            <span class="oi oi-shield" title="Not in Phonebook" aria-hidden="true"></span>
+            {% endif %}
+            {% if userIsCurrentEventAdmin and invite.group.type != "GROUP" %}
+            <a href="{% url "extension.multiring" pk=invite.group.pk %}">{{invite.group.extension}}</a>
+            {% elif userIsCurrentEventAdmin and invite.group.type == "GROUP" %}
+            <a href="{% url "callgroup.members" pk=invite.group.pk %}">{{invite.group.extension}}</a>
+            {% else %}
+            {{invite.group.extension}}
+            {% endif %}
+        </td>
+        <td>{{invite.group.name}}</td>
+        <td>{{invite.group.location}}</td>
+        <td>
+            {% if invite.group.type == "GROUP" %}
+                {% if invite.accepted %}
+                Group membership
+                {% else %}
+                Group invitation
+                {% endif %}
+            {% else %}
+            Multiring membership
+            {% endif %}
+        </td>
+        <td>
+            {% if invite.accepted %}
+                {% if invite.active %}
+                <span class="oi oi-media-play" title="Active member" aria-hidden="true"></span>
+                {% else %}
+                <span class="oi oi-media-pause" title="Inactive member" aria-hidden="true"></span>
+                {% endif %}
+            {% else %}
+            <span class="oi oi-ban" title="Invitation not yet accepted" aria-hidden="true"></span>
+            {% endif %}
+        </td>
+        <td>{{invite.delay_s}}</td>
+        <td>
+            {% if invite.accepted %}
+                {% if invite.active %}
+                {% form_post_button "media-pause" "Pause active membership" "callgroup.member.pause" pk=invite.pk next=request.path %}
+                {% else %}
+                {% form_post_button "media-play" "Resume active membership" "callgroup.member.resume" pk=invite.pk next=request.path %}
+                {% endif %}
+            {% else %}
+            {% form_post_button "check" "Accept membership" "callgroup.member.accept" pk=invite.pk next=request.path %}
+            {% endif %}
+            <a href="{% url "callgroup.member.delete" pk=invite.pk %}?next={{request.path|urlencode}}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+        </td>
+    </tr>
+    {% endfor %}
+    {% for extension in object.forwards_here.all %}
+    <td>
+        {% if extension.inPhonebook %}
+        <span class="oi oi-eye" title="Listed in Phonebook" aria-hidden="true"></span>
+        {% else %}
+        <span class="oi oi-shield" title="Not in Phonebook" aria-hidden="true"></span>
+        {% endif %}
+        {% if userIsCurrentEventAdmin %}
+        <a href="{% url "extension.edit" pk=extension.pk %}">{{extension.extension}}</a>
+        {% else %}
+        {{extension.extension}}
+        {% endif %}
+    </td>
+    <td>{{extension.name}}</td>
+    <td>{{extension.location}}</td>
+    <td>Call forward</td>
+    <td>
+        {% if extension.forward_mode == "DISABLED" %}
+        <span class="oi oi-media-pause" title="Currently inactive" aria-hidden="true"></span>
+        {% elif extension.forward_mode == "ENABLED" %}
+        <span class="oi oi-media-skip-forward" title="Active" aria-hidden="true"></span>
+        {% elif extension.forward_mode == "ON_BUSY" %}
+        <span class="oi oi-phone" title="Forward on busy" aria-hidden="true"></span>
+        {% elif extension.forward_mode == "ON_UNAVAILABLE" %}
+        <span class="oi oi-power-standby" title="Forward on unavailable" aria-hidden="true"></span>
+        {% endif %}
+    </td>
+    <td>
+        {% if extension.forward_mode == "DISABLED" or extension.forward_mode == "ENABLED" %}
+        {{extension.forward_delay}}
+        {% endif %}
+    </td>
+    <td></td>
+
+    {% endfor %}
+    </tbody>
+</table>
+
+
+<script>
+$(function () {
+  $('[data-toggle="popover"]').popover()
+})
+</script>
+{% endblock %}

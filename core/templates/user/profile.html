@@ -1,0 +1,42 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h2>Edit your personal data</h2>
+
+{% crispy form form_helper %}
+
+<h2>How to delete your account</h2>
+    <p>If you want to delete your account please change your First and Last name to
+        <b>Please Delete</b> and send a message to
+        <a href="mailto:poc@eventphone.de">poc@eventphone.de</a>
+        with the username and email address of your account.
+    </p>
+    <p>
+        We will delete all your data and send you a confirmation.
+    </p>
+
+<h2>User API key</h2>
+<p>
+    This will generate a new API key for your user. The API key can be sent in an <code>ApiKey</code>
+    HTTP header to authenticate with your user as an alternative to login and session cookie.
+    For security reasons (API keys are often used as machine credentials) API key authentication
+    is only enabled for the <code>/api/</code> sub space of urls.
+</p>
+<p>
+    The available API is or will in a continuing fashion be documented in our
+    <a href="https://eventphone.de/doku/">documentation Wiki</a>.
+    If you have use-cases that are currently not reflected in the API, feel free to contact us via our
+    <a href="/support/">support system</a>.
+</p>
+<p>
+    Please note that this action will immediately invalidate the old API key. Moreover, the API key will only
+    be shown once here. If you lose it or want to reset it, just generate a new one.
+</p>
+
+<form method="POST" class="mb-5" action="{% url "user.newapikey" %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-warning float-right">Generate new API key</button>
+</form>
+
+{% endblock %}

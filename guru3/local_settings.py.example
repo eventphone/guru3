@@ -1,0 +1,117 @@
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = '-gtwmk-@@d=l1wl35+3ahc_m*(u0o$-5+dyn=^qnb+2b17wc+e'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+# Database
+# https://docs.djangoproject.com/en/2.0/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+
+
+ADMINS = ()
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'formatter': 'verbose',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'django.log'),
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(name)s %(process)d %(thread)d %(message)s',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/2.0/howto/static-files/
+
+STATIC_ROOT = os.path.join(BASE_DIR, "guru3-static")
+STATIC_URL = '/static/'
+
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_URL = "/media/"
+RINGBACK_OUTPUT_DIR = os.path.join(BASE_DIR, "media", "converted_audio", "ringback")
+PLAIN_AUDIO_OUTPUT_DIR = os.path.join(BASE_DIR, "media", "converted_audio", "plain")
+
+# Mail from for outbound mails
+DEFAULT_FROM_EMAIL = 'guru3@eventphone.de'
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'mails')
+
+SIP_PW_LENGTH = 8
+
+SIP_SERVER = 'voip.eventphone.de'
+SIP_SERVER_PREMIUM = "172.20.24.1"
+
+REGISTER_TOKEN_LENGTH = 8
+
+NORMAL_USER_MAX_EXTENSIONS = 50
+
+# One might want to disable hardened cookie options for local development
+# REMOVE if this is a production site with https enabled.
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SECURE = False
+
+SESSION_COOKIE_SECURE = False
+
+
+CAPTCHA_FLITE_PATH = None
+C3POST_TRACKING_URL = 'https://office.c3post.de/track/EP23{:0>3}03{}{:0>7}'
+
+INSTALLATION_BASE_URL = "https://guru3.eventphone.de"
+
+CELERY_BROKER_URL = "redis+socket:///run/redis/redis.sock?virtual_host=1"
+CELERY_RESULT_BACKEND = "redis+socket:///run/redis/redis.sock?virtual_host=1"
+
+EPDDI_CA_CERT = ""
+EPDDI_CA_KEY = ""
+EPDDI_NETWORK = "10.192.0.0/16"
+EPDDI_YATE_RTP_ADDRESS = "172.20.23.2"
+EPDDI_YATE_RTP_PORT_RANGE_START = 10000
+EPDDI_YATE_RTP_PORT_RANGE_END = 20000
+EPDDI_ANTENNAE_RTP_PORT_RANGE_START = 10000
+EPDDI_ANTENNAE_RTP_PORT_RANGE_END = 20000
+EPDDI_OMM_ADDRESS = "10.161.1.2"
+EPDDI_VPN_CONCENTRATOR_ADDRESS = "10.161.0.1"
+EPDDI_VPN_CONCENTRATOR_SERVER_CA_CERT_URL = "https://cdn.eventphone.de/epddi/epddi-vpn-server-ca.crt"
+EPDDI_VPN_CONCENTRATOR_SERVER_HOSTNAME = "epddi-vpn.eventphone.de"
+EPDDI_MIKROTIK_ADMIN_PW_LENGTH = 16
+EPDDI_API_KEY = ""
+
+# Import some other settings
+try:
+    from guru3.privateSettings import *
+except ImportError:
+    pass

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Grandstream XML Provisioning Configuration -->
+<gs_provision version="1">
+<config version="1">
+  <!-- Maintenance WebAccess -->
+    <!-- admin password -->
+    <P2>eventphone</P2>
+  <!-- Settings DateTime -->
+    <!-- Disable DHCP Option 42 -->
+    <P144>0</P144>
+    <!-- TimeZone Europe-Berlin -->
+    <P64>CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00</P64>
+    <!-- 24h format -->
+    <P122>1</P122>
+  <!-- Upgrade and Provisioning -->
+    <!-- Skip Firmware upgrades all the time -->
+    <P238>2</P238>
+    <!-- Request data via HTTP=1 HTTPS=2 -->
+    <P212>1</P212>
+    <!-- Firmware path -->
+    <P192></P192>
+    <!-- Config server path -->
+    <P237>10.42.13.88:8000/grandstream/initial</P237>
+    <!-- Disable DHCP 66 and 43 -->
+    <P145>0</P145>
+    <!-- Disable DHCP 120 -->
+    <P1411>0</P1411>
+    <!-- Disable C3X Autoprovisioning -->
+    <P1414>0</P1414>
+    <!-- Enable automatic config refresh -->
+    <P194>1</P194>
+    <!-- Refresh interval in min -->
+    <P193>60</P193>
+</config>
+</gs_provision>

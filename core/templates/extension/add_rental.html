@@ -1,0 +1,14 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block current_event %}
+{{form.event.name}}
+{% endblock %}
+
+{% block content %}
+<h2>Apply for rental device</h2>
+
+{% crispy form form_helper %}
+
+
+{% endblock %}

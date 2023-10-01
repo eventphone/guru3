@@ -1,0 +1,24 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-6" style="margin: 0 auto;">
+        <h2>Delete DECT handset</h2>
+        <form method="POST">
+            {% csrf_token %}
+            Do you really want to remove the handset {{object}}?
+            <p class="text-info">
+            <strong>INFORMATION:</strong>
+            This will only delete this handset in the GURU adminstration and unlink it from all your past usages.
+            It will be automatically added if you use it in Eventphone's network again.
+            </p>
+            {{form.as_p}}
+            <div class="form-actions">
+                <button type="Submit" class="btn btn-danger">Delete</button>
+                <a href="{{next_view_path}}" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

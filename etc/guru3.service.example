@@ -1,0 +1,20 @@
+[Unit]
+Description=Guru3
+After=network.target redis.service
+Wants=redis.service
+
+
+[Service]
+PIDFile=/run/guru3/pid
+User=guru3
+Group=guru3
+WorkingDirectory=/opt/guru3
+ExecStart=/opt/guru3/bin/daphne --bind 127.0.0.1 --port 8080 --verbosity 0 guru3.asgi:application
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+Restart=on-abort
+PrivateTmp=true
+
+
+[Install]
+WantedBy=multi-user.target

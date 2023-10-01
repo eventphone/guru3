@@ -1,0 +1,13 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% load legacy_url %}
+
+{% block content %}
+<h1>Router provision for {{object.hostname}}</h1>
+Create a Mikrotik Script using the following code block and execute it to provision your router.
+
+<code style="white-space: pre;">
+{% include 'mikrotik/provision_userpart.rsc' %}
+</code>
+{% endblock %}

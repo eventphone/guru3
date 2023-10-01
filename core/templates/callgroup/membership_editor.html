@@ -1,0 +1,29 @@
+{% extends "master.html" %}
+{% load legacy_url %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h1>Callgroup {{object.extension}} ({{object.name}})</h1>
+<ul class="nav nav-pills" style="margin-bottom: 10px">
+  <li class="nav-item">
+    <a class="nav-link active" href="#">Membership</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link {% if user != object.owner and not userIsCurrentEventAdmin %}disabled{% endif %}"
+       href="{% if user == object.owner or userIsCurrentEventAdmin %}{% legacy_url "callgroup.admins" pk=object.pk %}{% else %}#{% endif %}">Administrators</a>
+  </li>
+</ul>
+
+{% include "membership_table.html" with group=True %}
+
+{% if user == object.owner or user in object.group_admins.all or userIsCurrentEventAdmin %}
+<h2>Invite members</h2>
+{% crispy form_invite_member invite_member_helper %}
+{% endif %}
+
+<script>
+$(function () {
+  $('[data-toggle="popover"]').popover()
+})
+</script>
+{% endblock %}

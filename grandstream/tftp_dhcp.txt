@@ -1,0 +1,2 @@
+tftp-server option: tftp-ip
+next-server: tftp-ip

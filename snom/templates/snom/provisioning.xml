@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<settings>
+    <phone-settings e="2">
+        {% with extension=inventory_lend.extension %}
+        {% if extension %}
+        {% if extension.announcement_lang|lower == "de-de" %}
+        <language perm="RW">Deutsch</language>
+        {% else %}
+        <language perm="RW">English</language>
+        {% endif %}
+        {% else %}
+        <language perm="RW">Deutsch</language>
+        {% endif %}
+        <setting_server perm="RW">{{prov_url}}</setting_server>
+        <update_policy perm="R">auto_update</update_policy>
+        <http_user perm="R">eventphone</http_user>
+        <http_pass perm="R">{{snom_phone.httpServerPassword}}</http_pass>
+        <admin_mode_password perm="R">{{snom_phone.adminPassword}}</admin_mode_password>
+        <admin_mode perm="RW">off</admin_mode>
+        <timezone perm="RW">{{timezone}}</timezone>
+        <tone_scheme perm="RW">GER</tone_scheme>
+        <user_xml_screen_url idx="1" perm="">https://guru3.eventphone.de/static/assets/idle-screen.xml</user_xml_screen_url>
+        {% if extension %}
+        <!-- User autoconfiguration according to currently linked extension -->
+        <user_active idx="1" perm="R">on</user_active>
+        <user_realname idx="1" perm="R">{{extension.name}}</user_realname>
+        <user_name idx="1" perm="R">{{extension.extension}}</user_name>
+        <user_host idx="1" perm="R">{{extension.sip_server}}</user_host>
+        <user_outbound idx="1" perm="R">{{extension.sip_server}}</user_outbound>
+        <user_pass idx="1" perm="R">{{extension.sipPassword}}</user_pass>
+        <user_failover_identity idx="1" perm="R">none</user_failover_identity>
+        <user_pname idx="1" perm="R"/>
+        <keepalive_interval idx="1" perm="R">30</keepalive_interval>
+        <!-- Configure ldap server for the event of this extension -->
+        <ldap_server perm="R">guru3.eventphone.de</ldap_server>
+        <ldap_port perm="R">389</ldap_port>
+        <ldap_username perm="R">cn={{extension.event.name}}</ldap_username>
+        <ldap_password perm="RW">$random</ldap_password>
+        <ldap_base perm="R">dc=eventphone,dc=de</ldap_base>
+        <ldap_name_attributes perm="R">sn l</ldap_name_attributes>
+        <ldap_number_attributes perm="R">telephoneNumber</ldap_number_attributes>
+        <ldap_display_name perm="R">%sn %l</ldap_display_name>
+        <ldap_search_filter perm="R">(|(sn=%)(l=%))</ldap_search_filter>
+        <ldap_number_filter perm="R">(telephoneNumber=%)</ldap_number_filter>
+        <ldap_sort_results perm="RW">on</ldap_sort_results>
+        <dkey_directory perm="RW">keyevent F_DIRECTORY_SEARCH</dkey_directory>
+        {% else %}
+        <!-- Not linked to any extension right now. -->
+        <user_active idx="1" perm="R">off</user_active>
+        {% endif %}
+        {% endwith %}
+    </phone-settings>
+</settings>

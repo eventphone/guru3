@@ -1,0 +1,11 @@
+<form method="GET" class="js-search">
+    {% include "search-form-common.html" %}
+    {% if name == "event.orga_phonebook" %}
+    <div class="form-group">
+        <div class="custom-control custom-checkbox">
+            <input type="checkbox" name="only_open_requests" class="checkboxinput custom-control-input" value="yes" id="only_open_requests_check" {% if search_params.only_open_requests %}checked {% endif %}/>
+            <label for="only_open_requests_check" class="custom-control-label">Show only open requests for rental devices</label>
+        </div>
+    </div>
+    {% endif %}
+</form>

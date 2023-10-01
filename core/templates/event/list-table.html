@@ -1,0 +1,49 @@
+<table class="table table-striped">
+    <thead><tr>
+        <th>Name</th>
+        {% if finite %}
+        <th>Start</th>
+        <th>End</th>
+        <th>Registration</th>
+        {% endif %}
+        <th>Actions</th>
+    </tr></thead>
+    <tbody>
+        {% for event in event_list %}
+        <tr>
+            <td>
+                {% if event.announcement_lang == "en-US" %}
+                    <img src="../static/assets/flag-en-US.png" />
+                {% elif event.announcement_lang == "en-GB" %}
+                    <img src="../static/assets/flag-en-GB.png" />
+                {% else %}
+                    <img src="../static/assets/flag-de-DE.png" />
+                {% endif %}
+                &nbsp;
+                {{event.name}}
+            </td>
+            {% if finite %}
+                <td>{{event.start|date:"d.m.Y"}}</td>
+                <td>{{event.end|date:"d.m.Y"}}</td>
+                <td>{{event.registrationStart|date:"d.m.Y"}}</td>
+            {% endif %}
+            <td>
+                <a href="{{event.url}}"><span class="oi oi-link-intact" title="Website" aria-hidden="true"></span></a>
+                {% if init %}
+                <form action="{% url "event.import" pk=event.pk %}" method="POST" class="form-icon">
+                {% csrf_token %}
+                <label for="import-{{event.pk}}" class="form-icon"><span class="oi oi-data-transfer-download" title="Init from PERMANENT" aria-hidden="true"></span></label>
+                <input type="submit" style="display: none" id="import-{{event.pk}}" />
+                </form>
+                <a href="{% url "event.invite" pk=event.pk %}"><span class="oi oi-people" title="Import reservations into event" aria-hidden="true"></span></a>
+                <a href="{% url "event.claim_email" pk=event.pk %}"><span class="oi oi-envelope-closed" title="Send out emails for reserved extensions" aria-hidden="true"></span></a>
+                {% endif %}
+                <a href="{% url "event.edit" pk=event.pk %}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+                <a href="{% url "event.delete" pk=event.pk %}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+                <a href="{% url "event.sync-confirm" pk=event.pk %}"><span class="oi oi-cloud-download" title="Sync to mgr" aria-hidden="true"></span></a>
+                <a href="{% url "event.select" pk=event.pk %}?name={{ event.name|slugify }}"><span class="oi oi-play-circle" title="Switch to Event" aria-hidden="true"></span></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

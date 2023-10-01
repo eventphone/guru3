@@ -1,0 +1,15 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h2>Return inventory item</h2>
+
+{% if form.errors %}
+<div class="alert alert-danger" role="alert">
+    Please correct your inputs!
+</div>
+{% endif %}
+
+{% crispy form form_helper %}
+
+{% endblock %}

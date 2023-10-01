@@ -100,5 +100,20 @@ venv.bak/
 # mkdocs documentation
 /site
 
+*.pyc
+__pycache__
+*.swp
+*.sqlite3
+guru3/local_settings.py
+guru3/privateSettings.py
+p3env
+.idea
+django.log
+guru3-static/
+media/
+mails/
+venv
+celerybeat-schedule
+
 # mypy
 .mypy_cache/

@@ -1,0 +1,99 @@
+{% load formstyle %}
+{% load bootstrap4_utils %}
+
+{% if form_invite_member.errors %}
+<div class="alert alert-danger" role="alert">
+    {% if group %}Member{% else %}Extension{% endif %} cannot be added! Correct your inputs!
+</div>
+{% endif %}
+
+<table class="table table-striped">
+    <thead><tr>
+        <th>State</th>
+        <th>Delay [s]</th>
+        <th>Extension</th>
+        <th>Name</th>
+        <th>Location</th>
+        {% if group %}
+        <th>Invited by</th>
+        <th>Invite reason</th>
+        {% endif %}
+        <th>Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for member, delay_field in group_invites_delays %}
+    <tr>
+        <td>
+            {% if not member.accepted %}
+            <span class="oi oi-ban" title="Invitation not yet accepted" aria-hidden="true"></span>
+            {% elif member.active %}
+            <span class="oi oi-media-play" title="Active member" aria-hidden="true"></span>
+            {% else %}
+            <span class="oi oi-media-pause" title="Inactive member" aria-hidden="true"></span>
+            {% endif %}
+        </td>
+        <td>
+            {% if user == object.owner or user in object.group_admins.all or userIsCurrentEventAdmin %}
+            {% bootstrap4_form_field delay_field style="width: 5ch; box-sizing: content-box" form="delays_form" %}
+            {% else %}
+            {{delay_field.value}}
+            {% endif %}
+        </td>
+        <td>
+            {% if member.extension.inPhonebook %}
+            <span class="oi oi-eye" title="Listed in Phonebook" aria-hidden="true"></span>
+            {% else %}
+            <span class="oi oi-shield" title="Not in Phonebook" aria-hidden="true"></span>
+            {% endif %}
+            {{member.extension}}</td>
+        <td>
+            {% if member.accepted or member.extension.inPhonebook %}
+            {{member.extension.name}}
+            {% endif %}
+        </td>
+        <td>
+            {% if member.accepted or member.extension.inPhonebook %}
+            {{member.extension.location}}
+            {% endif %}
+        </td>
+        {% if group %}
+        <td>{{member.inviter.username}}</td>
+        <td>{{member.invite_reason}}</td>
+        {% endif %}
+        <td>
+            {% if not member.accepted %}
+            {% if userIsCurrentEventAdmin or user == member.extension.owner or user in member.extension.group_admins.all %}
+            {% form_post_button "check" "Accept membership" "callgroup.member.accept" pk=member.pk next=request.path %}
+            {% endif %}
+            {% else %}
+            {% if member.accepted %}
+            {% if member.active %}
+            {% if user == member.extension.owner or user in member.extension.group_admins.all or user == object.owner or user in object.group_admins.all or userIsCurrentEventAdmin %}
+            {% form_post_button "media-pause" "Pause active membership" "callgroup.member.pause" pk=member.pk next=request.path %}
+            {% endif %}
+            {% else %}
+            {% if user == member.extension.owner or user in member.extension.group_admins.all or user == object.owner or user in object.group_admins.all or userIsCurrentEventAdmin %}
+            {% form_post_button "media-play" "Resume active membership" "callgroup.member.resume" pk=member.pk next=request.path %}
+            {% endif %}
+            {% endif %}
+            {% endif %}
+            {% endif %}
+            {% if user == object.owner or user in object.group_admins.all or userIsCurrentEventAdmin  %}
+            <a href="{% url "callgroup.member.delete" pk=member.pk %}?next={{request.path|urlencode}}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+            {% elif user == member.extension.owner or user in member.extension.group_admins.all %}
+            {% url "callgroup.my" as my_callgroups_url %}
+            <a href="{% url "callgroup.member.delete" pk=member.pk %}?next={{my_callgroups_url|urlencode}}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% if group_invites_delays %}
+{% if user == object.owner or user in object.group_admins.all or userIsCurrentEventAdmin %}
+<form id="delays_form" method="POST" class="mb-3">
+    {% csrf_token %}
+    <input type="submit" name="delays" class="btn btn-primary" value="Update delays" />
+</form>
+{% endif %}
+{% endif %}

@@ -1,0 +1,97 @@
+{% extends "master.html" %}
+{% load formstyle %}
+
+{% block content %}
+
+<h1>Userlist</h1>
+
+{% include "search-form.html" with placeholder="Username, real name, email, ..." %}
+<p class="text-info">
+{{paginator.count}} users found.
+</p>
+<table class="table table-striped">
+    <thead><tr>
+        {% include "table-sort-header.html" with description="Username" key="username" %}
+        {% include "table-sort-header.html" with description="First name" key="first_name" %}
+        {% include "table-sort-header.html" with description="Last name" key="last_name" %}
+        {% include "table-sort-header.html" with description="Email" key="email" %}
+        <th>Properties</th>
+        <th>Actions</th>
+    </tr></thead>
+    <tbody>
+        {% for user in object_list %}
+        <tr>
+            <td class="username">{{user.username}}</td>
+            <td>{{user.first_name}}</td>
+            <td>{{user.last_name}}</td>
+            <td>{{user.email}}</td>
+            <td>
+                {% if not user.is_active %}
+                <span class="oi oi-ban" title="Inactive User" aria-hidden="true" data-toggle="tooltip"></span>
+                {% endif %}
+                {% if user.is_staff %}
+                <span class="oi oi-star" title="Administrator User" aria-hidden="true" data-toggle="tooltip"></span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url "extension.user" pk=user.pk %}"><span class="oi oi-list" title="List Extensions" aria-hidden="true"></span></a>
+                <a href="{% url "handset.user" pk=user.pk %}"><span class="oi oi-phone" title="List Handsets" aria-hidden="true"></span></a>
+                <a href="{% url "audio.user" pk=user.pk %}"><span class="oi oi-volume-high" title="List Audio Files" aria-hidden="true"></span></a>
+                {% if request.user.is_staff %}
+                <a href="{% url "user.edit" pk=user.pk %}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+                <a href="{% url "user.delete" pk=user.pk %}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+                {% endif %}
+                <span class="keyEntry">
+                {% if request.user.is_superuser and user.userapikey_set.count > 0 %}
+                {% form_post_button "lock-unlocked" "Delete user API key" "user.deleteapikey" pk=user.pk%}
+                {% endif %}
+                </span>
+                {% if user.email %}
+                <a href="#" data-toggle="modal" data-target="#confirmResetPasswordDialog" data-form-action="{% url "user.resetpassword" pk=user.pk %}" data-user-email="{{ user.email }}"><span class="oi oi-link-intact" title="Send reset password link" aria-hidden="true"></span></a>
+                {% endif %}
+                <a href="{% url "user.invoice" pk=user.pk %}"><span class="oi oi-dollar" title="download invoice" aria-hidden="true"></span></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- modal send reset link -->
+<div class="modal fade" id="confirmResetPasswordDialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Reset Password</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      </div>
+      <form method="POST">
+          <div class="modal-body">
+            <p>Send reset password link to <span class="email"></span>?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Send Link</button>
+          </div>
+          {% csrf_token %}
+      </form>
+    </div>
+  </div>
+</div>
+{% include "pagination-search-footer.html" %}
+{% endblock %}
+
+{% block scripts %}
+    <script>
+$(document).ready(function() {
+    $('[data-toggle="popover"]').popover();
+    $('#confirmResetPasswordDialog').on('show.bs.modal', function (event) {
+      let button = $(event.relatedTarget);
+      let action = button.data('form-action');
+      let email = button.data('user-email');
+      let modal = $(this);
+      modal.find('form').attr('action', action);
+      modal.find('.email').html(email);
+    })
+});
+</script>
+{% endblock %}

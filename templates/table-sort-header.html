@@ -1,0 +1,15 @@
+{% load url_extra %}
+{% with "-"|add:key as keyDesc %}
+<th>
+    <div class="sort-header">
+    {{description}}
+    {% if search_params.order == key %}
+    <a href="?{% url_parameters search_params order=keyDesc %}"><span class="headerAsc"></span></a>
+    {% elif search_params.order == keyDesc %}
+    <a href="?{% url_parameters search_params order=key %}"><span class="headerDesc"></span></a>
+    {% else %}
+    <a href="?{% url_parameters search_params order=key %}"><span class="headerUnSorted"></span></a>
+    {% endif %}
+    </div>
+</th>
+{% endwith %}

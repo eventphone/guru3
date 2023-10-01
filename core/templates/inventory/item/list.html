@@ -1,0 +1,90 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+{% include "inventory/item/inventory-nav.html" with view="inventory" %}
+
+<h1>Inventory</h1>
+{% if request.user.is_staff %}
+<ul class="nav justify-content-end mb-2">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "inventory.type.list" %}"><span class="oi oi-folder"></span> Manage inventory types</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "inventory.dect_suggestions" %}"><span class="oi oi-phone"></span> DECT IPEI assist</a>
+  </li>
+</ul>
+{% endif %}
+<ul class="nav justify-content-end mb-2">
+  {% if request.user.is_staff %}
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "inventory.item.new" %}"><span class="oi oi-plus"></span> Add inventory item</a>
+  </li>
+  {% endif %}
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "inventory.item.list.csv" %}"><span class="oi oi-data-transfer-download"></span> Download inventory CSV</a>
+  </li>
+</ul>
+
+<hr/>
+{% crispy form form.get_form_helper %}
+<hr/>
+<div>
+{% include "search-form.html" with placeholder="Descriptions, serial numbers, MACs ..." %}
+</div>
+<p class="text-info">
+  {{paginator.count}} items found.
+</p>
+<table class="table table-striped">
+  <thead><tr>
+    {% include "table-sort-header.html" with description="Type" key="type" %}
+    {% include "table-sort-header.html" with description="Description" key="description" %}
+    {% include "table-sort-header.html" with description="Serial number" key="serialNumber" %}
+    {% include "table-sort-header.html" with description="Barcode" key="barcode" %}
+    <th>Status</th>
+    <th>Actions</th>
+  </tr></thead>
+  <tbody>
+  {% for object in object_list %}
+  <tr>
+    <td>{{object.itemType.name}}</td>
+    <td>{{object.description}}</td>
+    <td>{{object.serialNumber}}</td>
+    <td>{{object.barcode}}</td>
+    <td>
+      {% if object.isCurrentlyOnStock %}
+      <span class="oi oi-home" title="on stock" aria-hidden="true"></span>
+      {% else %}
+      <span class="oi oi-globe" title="out there" aria-hidden="true"></span>
+      {% endif %}
+    </td>
+    <td>
+      {% if object.isCurrentlyOnStock %}
+      <a href="{% url "inventory.item.lend" pk=object.pk %}"><span class="oi oi-transfer" title="Hand out" aria-hidden="true"></span></a>
+      {% else %}
+      <a href="{% url "inventory.item.return" pk=object.getCurrentLending.pk %}"><span class="oi oi-home" title="Gotten back" aria-hidden="true"></span></a>
+      {% endif %}
+      <a href="{% url "inventory.item.edit" pk=object.pk %}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+      {% if request.user.is_staff %}
+      <a href="{% url "inventory.item.delete" pk=object.pk %}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% include "pagination-search-footer.html" %}
+
+<script>
+  $(document).ready(function () {
+    var qaMode = localStorage.getItem("qamode");
+    if (qaMode != null) {
+      $("#id_mode").val(qaMode);
+    }
+    $("#id_mode").change(function () {
+      localStorage.setItem("qamode", $(this).val());
+    });
+  });
+</script>
+
+{% endblock %}

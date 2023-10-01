@@ -1,0 +1,64 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% load legacy_url %}
+
+{% block scripts %}
+    <link rel="stylesheet" href="{% static "mediaelement/mediaelementplayer.min.css" %}" />
+    <script src="{% static "mediaelement/mediaelement-and-player.min.js" %}"></script>
+    <style>
+    .mejs__container
+    {
+        background: darkgray !important;
+    }
+    .mejs__duration-container
+    {
+        display: none !important;
+    }
+    </style>
+{% endblock %}
+
+{% block content %}
+{% if list_user %}
+    <h1>Audio File overview for {{ list_user.username }}</h1>
+{% else %}
+    <h1>Audio File overview</h1>
+    <ul class="nav justify-content-end mb-2">
+      <li class="nav-item">
+        <a class="nav-link" href="{% legacy_url "audio.new" %}"><span class="oi oi-plus"></span> Add Audio File</a>
+      </li>
+    </ul>
+{% endif %}
+<table class="table table-striped">
+    <thead><tr>
+        <th>Name</th>
+        <th>File</th>
+        <th>Actions</th>
+    </tr></thead>
+    <tbody>
+{% for file in object_list %}
+        <tr class="{% if file.processing_error %}table-danger{% elif not file.processed %}table-dark{% endif %}">
+            <td>{{ file.name }}</td>
+            <td>
+                <audio class="mejs__player" id="mejsplayer" src="{{ file.get_url }}" preload="true"  controls="controls" />
+            </td>
+            <td>
+                {% if user.is_staff  %}
+                <a href="{% url "audio.fetch.ringback" hash=file.sha512 %}"><span class="oi oi-bell" title="Download ringback slin" aria-hidden="true"></span></a>
+                <a href="{% url "audio.fetch.plain" hash=file.sha512 %}"><span class="oi oi-pulse" title="Download plain slin" aria-hidden="true"></span></a>
+
+                {% endif %}
+                {% if user.is_staff or file.owner == request.user %}
+                <a href="{% url "audio.delete" pk=file.pk %}?next={{request.path|urlencode}}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+                {% endif %}
+            </td>
+        </tr>
+
+
+{% endfor %}
+    </tbody>
+</table>
+
+
+
+{% endblock %}

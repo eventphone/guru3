@@ -1,0 +1,53 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+{% load legacy_url %}
+
+{% block content %}
+{% if list_user %}
+<h2>DECT handsets of {{list_user.username}}</h2>
+{% else %}
+<h2>My DECT handsets</h2>
+{% endif %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th>IPEI</th>
+            <th>Usage</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for handset in object_list %}
+    <tr>
+        <td>{{handset}}</td>
+        <td>{{handset.ipei}}</td>
+        <td>
+            <table>
+           <!--     <thread>
+                    <th>Event</th>
+                    <th>Number</th>
+                    <th>Name</th>
+                </thread> -->
+                <tbody>
+                    {% for extension in handset.extension_set.all %}
+                    <tr>
+                    <td>{{extension.event}}</td>
+                    <td>{{extension.extension}}</td>
+                    <td>{{extension.name}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </td>
+        <td>
+            <a href="{% url "handset.edit" pk=handset.pk %}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+            {% if user.is_staff or handset.owner == request.user %}
+            <a href="{% url "handset.delete" pk=handset.pk %}?next={{request.path|urlencode}}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

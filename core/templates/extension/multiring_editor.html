@@ -1,0 +1,48 @@
+{% extends "master.html" %}
+{% load legacy_url %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h1>Extension {{object.extension}} ({{object.name}})</h1>
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item">
+        <a class="nav-link" href="{% url "extension.edit" pk=object.pk %}{% if request.GET.next_url %}?next_url={{request.GET.next_url}}{% endif %}">Config</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link active" href="#">Multiring</a>
+    </li>
+    <li class="nav-item mr-3">
+        <a class="nav-link" href="{% url "extension.references" pk=object.pk %}{% if request.GET.next_url %}?next_url={{request.GET.next_url}}{% endif %}">References</a>
+    </li>
+    {% if object.type == "DECT" %}
+    <li class="nav-item">
+        <div class="form-actions">
+            <form method="POST" action="{% url "extension.unsubscribe" pk=object.pk %}">
+            {% csrf_token %}
+            <button title="Unsubscribe's your current DECT phone, which renders your extensions available again." type="Submit" class="btn btn-danger">
+                Unsubscribe DECT
+            </button>
+            </form>
+        </div>
+    </li>
+    {% endif %}
+</ul>
+
+<p>Multiring allows you to configure additional extensions from yours that should
+ring additionally when this extension here is called. This way you can, for example,
+configure a desktop SIP phone to also ring when your DECT is called.</p>
+<p>Please note that you can only add your own extensions as multiring extensions
+here. If you need a complexer group ring setup, please create a callgroup.</p>
+
+<h2>Current multiring extensions</h2>
+{% include "membership_table.html" with group=False %}
+
+<h2>Add multiring extensions</h2>
+{% crispy form_invite_member invite_member_helper %}
+
+<script>
+$(function () {
+  $('[data-toggle="popover"]').popover()
+})
+</script>
+{% endblock %}

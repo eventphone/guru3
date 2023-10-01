@@ -1,0 +1,80 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% load legacy_url %}
+
+{% block content %}
+<h1>EPDDI router overview</h1>
+{% if userIsCurrentEventAdmin %}
+<ul class="nav justify-content-end mb-2">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "epddi.new" %}"><span class="oi oi-plus"></span> Add Router</a>
+  </li>
+</ul>
+{% endif %}
+<table class="table table-striped">
+    <thead><tr>
+        {% if not user_list %}
+        <th>Owner</th>
+        {% endif %}
+        <th>Description</th>
+        <th>Location</th>
+        <th>Hostname</th>
+        <th>Network</th>
+        <th>Config Update</th>
+        <th>State</th>
+        <th>Actions</th>
+    </tr></thead>
+    <tbody>
+{% for client in object_list %}
+        <tr>
+        {% if not user_list %}
+            <td>{{ client.owner }}</td>
+        {% endif %}
+            <td>{{ client.description }}</td>
+            <td>{{ client.location }}</td>
+            <td>{{ client.hostname }}</td>
+            <td>{{ client.dect_network.network_address }}/{{ client.dect_network.network_mask }}</td>
+        {% if client.mikrotikrouter.last_config_update %}
+            <td>{{ client.mikrotikrouter.last_config_update|timesince }} ago</td>
+        {% else %}
+            <td>Never</td>
+        {% endif %}
+            <td>
+                {% if client.is_connected %}
+                    <span class="oi oi-fullscreen-exit" title="Client online in VPN" aria-hidden="true" data-toggle="tooltip"></span>
+                {% elif client.last_connected %}
+                    <span class="oi oi-fullscreen-enter" title="Client offline, last seen: {{ client.last_connected|date:"d.m.y H:i" }}" aria-hidden="true" data-toggle="tooltip"></span>
+                {% else %}
+                    <span class="oi oi-question-mark" title="Client was never connected" aria-hidden="true" data-toggle="tooltip"></span>
+                {% endif %}
+                {% if client.device_state == -1 %}
+                    DISABLED
+                {% elif client.device_state == 1 %}
+                    NEW
+                {% elif client.device_state == 2 %}
+                    PROVISIONING
+                {% elif client.device_state == 3 %}
+                    PROVISIONED
+                {% endif %}
+            </td>
+            <td>
+                {% if userIsCurrentEventAdmin %}
+                <a href="{% url "epddi.edit" pk=client.pk %}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+                <a href="{% url "epddi.delete" pk=client.pk %}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+                {% endif %}
+                {% if client.device_state == 1 and client.device_type == 1 %}
+                <a href="{% url "mikrotik.provision_userpart" pk=client.mikrotikrouter.pk %}"><span class="oi oi-script" title="Get router provisioning script" aria-hidden="true"></span></a>
+                {% endif %}
+                {% if client.device_type == 0 %}
+                <a href="{% url "epddi.info" pk=client.pk %}"><span class="oi oi-info" title="Show configuration parameters" aria-hidden="true"></span></a>
+                {% endif %}
+            </td>
+        </tr>
+{% endfor %}
+    </tbody>
+</table>
+
+
+
+{% endblock %}

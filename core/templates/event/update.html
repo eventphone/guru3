@@ -1,0 +1,34 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+{% if object %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">{{object.name}}</li>
+    </ol>
+</nav>
+<ul class="nav nav-pills">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "event.orga" pk=object.pk %}">Organizers</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "event.helpdesk" pk=object.pk %}">Helpdesk personnel</a>
+  </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% url "event.apikeygen" pk=object.pk %}">Mgr API key</a>
+    </li>
+</ul>
+{% else %}
+<h2>Create a new event</h2>
+{% endif %}
+
+{% if form.errors %}
+<div class="alert alert-danger" role="alert">
+    Please correct your inputs!
+</div>
+{% endif %}
+
+{% crispy form form_helper %}
+
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "master.html" %}
+{% load legacy_url %}
+
+{% block content %}
+{% if list_user %}
+    <h1>Extension overview for {{ list_user.username }}</h1>
+{% else %}
+    <h1>Extension overview</h1>
+{% endif %}
+{% if currentEvent %}
+<ul class="nav justify-content-end mb-2">
+    <li class="nav-item">
+        <a class="nav-link" href="{% legacy_url "extension.new" %}"><span class="oi oi-plus"></span> Add Extension for {{ currentEvent.name }}</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{% legacy_url "user.invoice" %}"><span class="oi oi-data-transfer-download"></span> Download invoice for {{ currentEvent.name }}</a>
+    </li>
+</ul>
+{% endif %}
+
+{% regroup object_list by event as event_list %}
+{% for event, extension_list in event_list %}
+<h3>{{event.name}}</h3>
+<table class="table table-striped">
+    <thead><tr>
+        <th>Extension</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Actions</th>
+    </tr></thead>
+    <tbody>
+        {% for ext in extension_list %}
+        {% if request.user.is_staff or event == curentEvent or ext.inPhonebook or request.user == ext.owner %}
+        <tr>
+            <td>
+            {% if ext.inPhonebook %}
+                <span class="oi oi-eye" title="Listed in Phonebook" aria-hidden="true"></span>
+            {% else %}
+                <span class="oi oi-shield" title="Not in Phonebook" aria-hidden="true"></span>
+            {% endif %}
+            <a href="tel:{{ext.extension}}">{{ext.extension}}</a>
+            </td>
+            <td>{{ext.name}}</td>
+            <td>
+                {% if request.user.is_staff and ext.type == "GROUP" %}
+                <a href="{% url "callgroup.admins" pk=ext.pk %}"><span class="oi oi-people" title="Call group admins" aria-hidden="true"></span></a>
+                <a href="{% url "callgroup.members" pk=ext.pk %}"><span class="oi oi-list" title="Member extensions list" aria-hidden="true"></span></a>
+                {% endif %}
+                {{ext.get_type_display}}
+            </td>
+            <td>
+                {% if request.user == ext.owner or request.user.is_staff or userIsCurrentEventAdmin and event == currentEvent %}
+                <a href="{% legacy_url "extension.edit" pk=ext.pk next_url=signedCurrentURL %}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+                <a href="{% url "extension.delete" pk=ext.pk %}?next={{request.path|urlencode}}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+                {% if not event.isPast %}
+                    <span class="keyEntry">{% include "extension/keyentry.html" %}</span>
+                {% endif %}
+                {% endif %}
+            </td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </tbody>
+</table>
+{% endfor %}
+<script>
+$(function () {
+  $('[data-toggle="popover"]').popover()
+})
+</script>
+{% endblock %}

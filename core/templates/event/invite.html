@@ -1,0 +1,68 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h2>Invite extensions from another event to {{event.name}}</h2>
+
+<p>
+    Select an event from which all extensions should be invited to {{event.name}}. Also provide a deadline until
+    when the invite is valid. As long as the invitation is valid, only the user or admins can create this extension.
+    Invited users can also register even though public registration is still closed.
+</p>
+<p class="text-info">
+    This will only create the invitations and DOES NOT send out any emails. Use the functionality to
+    send out emails in a second step after you created the invites here. This allows you to create the invites
+    and thus block the invited extensions before you send out the mails. This is considered useful, for example,
+    when registration for organizers should start really early but you want to make sure that organizers don't
+    take reserved extensions.
+</p>
+
+{% if form.errors %}
+<div class="alert alert-danger" role="alert">
+    Please correct your inputs!
+</div>
+{% endif %}
+
+{% crispy form form_helper %}
+
+
+<script>
+    $(document).ready(function () {
+        $("form:has(#submit-id-save)").on("submit", function (event) {
+            event.preventDefault();
+
+            var form = $(this);
+            var post_url = form.attr("action");
+            $.ajax({
+                type: "POST",
+                data: form.serialize(),
+            })
+            .done(function(data, textStatus, xhr) {
+                var content_type = xhr.getResponseHeader("content-type") || "";
+                if (content_type.indexOf("json") > -1) {
+                    $("#submit-id-save").replaceWith('<button id="submit-id-save" class="btn btn-primary"><span class="oi oi-loop-circular icon-spin"></span></button>');
+                    setInterval(function() { check_task_results(data["task_url"], data["next_view"]); }, 1000);
+                } else {
+                    // this is a form error, just replace the whole page
+                    document.open();
+                    document.write(data);
+                    document.close();
+                }
+            })
+            .fail(function(data, textStatus, xhr) {
+                alert("An error occured: " + textStatus);
+            });
+
+        });
+    });
+
+    function check_task_results(task_url, success_url) {
+        $.getJSON(task_url, function(data) {
+            if (data["status"] == "SUCCESS") {
+                document.location.href = success_url;
+            }
+        });
+    }
+</script>
+
+{% endblock %}

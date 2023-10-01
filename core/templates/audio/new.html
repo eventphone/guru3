@@ -1,0 +1,25 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<h2>Create a new audio file</h2>
+
+{% if form.errors %}
+    {% for field in form %}
+        {% for error in field.errors %}
+            <div class="alert alert-danger" role="alert">
+                <strong>{{ error|escape }}</strong>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div class="alert alert-danger" role="alert">
+            <strong>{{ error|escape }}</strong>
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% crispy form form.get_form_helper %}
+
+{% endblock %}

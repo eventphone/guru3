@@ -1,0 +1,27 @@
+{% extends "master.html" %}
+
+{% block content %}
+
+<h1>Events overview</h1>
+
+<ul class="nav justify-content-end mb-2">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "event.new" %}"><span class="oi oi-plus"></span> Add Event</a>
+  </li>
+</ul>
+
+
+<h2>Permanent Events</h2>
+{% include "event/list-table.html" with event_list=permanentEvents finite=False %}
+
+<h2>Running Events</h2>
+{% include "event/list-table.html" with event_list=runningEvents finite=True init=True %}
+
+<h2>Upcoming Events</h2>
+{% include "event/list-table.html" with event_list=upcomingEvents finite=True init=True %}
+
+<h2>Past Events</h2>
+{% include "event/list-table.html" with event_list=pastEvents finite=True %}
+
+
+{% endblock %}

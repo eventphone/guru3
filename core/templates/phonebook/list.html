@@ -1,0 +1,151 @@
+{% extends "master.html" %}
+{% load url_extra %}
+{% load legacy_url %}
+{% load crispy_forms_tags %}
+{% block content %}
+{% with request.resolver_match.view_name as name %}
+
+<h1>{% if name == "extension.list" %}Extensions in{% elif name == "event.orga_phonebook" %}Organizer's phonebook of{% else %}Phonebook of{% endif %} {{currentEvent.name}}</h1>
+{% if name == "extension.list" %}
+<ul class="nav justify-content-end mb-2">
+    <li class="nav-item">
+        <a class="nav-link" href="{% url "extension.list" %}">All extensions</a>
+    </li>
+</ul>
+{% endif %}
+
+{% include "search-form-phonebook.html" with placeholder="Numbers, Names, Locations, ..." autofocus="autofocus"%}
+<p class="text-info">
+{{paginator.count}} extensions found.
+</p>
+{% if name == "extension.list" %}
+<ul class="nav justify-content-end mb-2">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "extension.new" %}?next_url={{signedCurrentURL}}"><span class="oi oi-plus"></span> Add Extension</a>
+  </li>
+</ul>
+{% endif %}
+
+<table class="table table-striped" id="phonebook">
+    <thead><tr>
+        {% include "table-sort-header.html" with description="Extension" key="extension" %}
+        {% include "table-sort-header.html" with description="Name" key="name" %}
+        {% include "table-sort-header.html" with description="Type" key="type" %}
+        {% if name != "event.orga_phonebook" %}
+        {% include "table-sort-header.html" with description="Location" key="location" %}
+        {% else %}
+        <th>Rental phone</th>
+        {% endif %}
+        {% if name == "extension.list" or name == "event.orga_phonebook" %}
+        {% include "table-sort-header.html" with description="Owner" key="owner" %}
+        <th>Actions</th>
+        {% endif %}
+    </tr></thead>
+    <tbody>
+        {% for ext in object_list %}
+        <tr>
+            <td>
+                {% if name == "extension.list" or name == "event.orga_phonebook" %}
+                    {% if ext.inPhonebook %}
+                        <span class="oi oi-eye" title="Listed in Phonebook" aria-hidden="true"></span>
+                    {% else %}
+                        <span class="oi oi-shield" title="Not in Phonebook" aria-hidden="true"></span>
+                    {% endif %}
+                {% endif %}
+                <a href="tel:{{ext.extension}}">{{ext.extension}}</a>
+            </td>
+            <td>{{ext.name}}</td>
+            <td>
+                {% if name == "extension.list" %}
+                   {% include "extension/keyentry.html" %}
+                {% endif %}
+                {% if ext.type == "GROUP" %}
+                {% if name == "extension.list" or name == "event.orga_phonebook" and request.user in ext.group_admins.all or name == "event.orga_phonebook" and request.user == ext.owner or name == "event.orga_phonebook" and userIsCurrentEventAdmin %}
+                    <a href="{% legacy_url "callgroup.admins" pk=ext.pk %}"><span class="oi oi-people" title="Admin editor" aria-hidden="true"></span></a>
+                    <a href="{% legacy_url "callgroup.members" pk=ext.pk %}"><span class="oi oi-list" title="Member editor" aria-hidden="true"></span></a>
+                {% endif %}
+                {% endif %}
+                {{ext.get_type_display}}
+            </td>
+            {% if name != "event.orga_phonebook" %}
+                <td>{{ext.location}}</td>
+            {% else %}
+                <td>
+                {% if ext.assignedRentalDevice %}
+                    <span class="text-success">{{ext.assignedRentalDevice}}</span>
+                {% elif ext.requestedRentalDevice %}
+                    <span class="text-danger">{{ext.requestedRentalDevice}}</span>
+                {% endif %}
+                {% for lending in ext.active_lendings %}
+                    {% if userIsCurrentEventAdmin %}<a href="{% url "inventory.item.edit" pk=lending.item.pk %}">{% endif %}
+                    <span class="oi oi-tag" data-toggle="tooltip" title="Rental Item: {{lending.item.itemType.name}} ({{lending.item.barcode}})" aria-hidden="true"></span>
+                {% endfor %}
+                </td>
+            {% endif %}
+            </td>
+            {% if name == "extension.list" or name == "event.orga_phonebook" %}
+            <td>
+                {% if ext.owner and name == "extension.list" %}
+                    {% if request.user.is_staff %}
+                    <a href="{% url "user.edit" pk=ext.owner.pk %}"><span class="oi oi-person" title="Edit user" aria-hidden="true"></span></a>
+                    {% endif %}
+                    <a href="{% url "extension.user" pk=ext.owner.pk %}"><span class="oi oi-list" title="Show all user extensions" aria-hidden="true"></span></a>
+                {% endif %}
+                {{ext.owner}}
+            </td>
+            <td>
+                {% if name == "event.orga_phonebook" and userIsCurrentEventAdmin and ext.requestedRentalDevice and not ext.assignedRentalDevice %}
+                <form method="POST" action="{% url "extension.rental_approve" pk=ext.pk %}" style="display: inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="next_url" value="{{request.get_full_path}}" />
+                    <input type="submit" value="" id="approve-device-{{ext.pk}}" style="display: none" />
+                    <label for="approve-device-{{ext.pk}}" style="margin-bottom: 0"><span class="oi oi-check keyEntry" title="Approve rental device" aria-hidden="true"></span></label>
+                </form>
+                {% endif %}
+                {% if userIsCurrentEventAdmin or request.user == ext.owner %}
+                {% if ext.type == "GROUP" %}
+                <a href="{% url "callgroup.edit" pk=ext.pk %}?next_url={{signedCurrentURL}}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+                {% else %}
+                <a href="{% url "extension.edit" pk=ext.pk %}?next_url={{signedCurrentURL}}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+                {% endif %}
+                <a href="{% url "extension.delete" pk=ext.pk %}?next={{request.path|urlencode}}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+                {% endif %}
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% include "pagination-search-footer.html" %}
+
+{% if name == "event.orga_phonebook" %}
+{% if userIsCurrentEventAdmin %}
+<hr/>
+<dl class="row">
+    {% for item in rental_usage_statistics %}
+    <dt class="col-sm-3">{{item.0}}</dt>
+    <dd class="col-sm-9">Usage {{item.1}}/{{item.2}}, Open requests {{item.3}}/{{item.4}}</dd>
+    {% endfor %}
+</dl>
+{% endif %}
+<hr />
+<h4>Extension quick create</h4>
+{% crispy quick_create_form quick_create_form.get_form_helper %}
+{% endif %}
+
+<script>
+$(function () {
+  $('[data-toggle="popover"]').popover()
+});
+
+{% if name == "event.orga_phonebook" %}
+$(document).ready(function () {
+    $("#only_open_requests_check").change(function () {
+        $("form.js-search").submit();
+    });
+});
+{% endif %}
+</script>
+{% endwith %}
+{% endblock %}
+

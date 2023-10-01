@@ -1,0 +1,8 @@
+{% extends "master.html" %}
+{% load static %}
+{% block content %}
+
+<h1 class="text-danger">The number you have dialed is not in service.</h1>
+<audio src="{% static "assets/VC_SIT.ogg"%}" autoplay loop></audio>
+
+{% endblock %}

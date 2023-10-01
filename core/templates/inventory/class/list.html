@@ -1,0 +1,37 @@
+{% extends "master.html" %}
+
+{% block content %}
+
+<h1>Rental device classification overview</h1>
+
+<ul class="nav justify-content-end mb-2">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "inventory.class.new" %}"><span class="oi oi-plus"></span> Add rental device classification</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "inventory.type.list" %}"><span class="oi oi-folder"></span> Manage inventory types</a>
+  </li>
+</ul>
+
+
+<table class="table table-striped">
+  <thead><tr>
+    <th>Name</th>
+    <th>Actions</th>
+  </tr></thead>
+  <tbody>
+  {% for object in object_list %}
+  <tr>
+    <td>{{object.name}}</td>
+    <td>
+      <a href="{% url "inventory.class.edit" pk=object.pk %}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+      <a href="{% url "inventory.class.delete" pk=object.pk %}"><span class="oi oi-x" title="Delete" aria-hidden="true"></span></a>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+
+
+
+{% endblock %}

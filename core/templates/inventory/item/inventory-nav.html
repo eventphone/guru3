@@ -1,0 +1,13 @@
+<ul class="nav nav-pills">
+  <li class="nav-item">
+    <a class="nav-link{% if view == "inventory" %} active{% endif %}" href="{% url "inventory.item.list" %}">Inventory</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link{% if view == "lent" %} active{% endif %}" href="{% url "inventory.item.lent" %}">Lent (current event)</a>
+  </li>
+  {% if request.user.is_staff %}
+  <li class="nav-item">
+    <a class="nav-link{% if view == "lent+all" %} active{% endif %}" href="{% url "inventory.item.lent.all" %}">Lent (all events)</a>
+  </li>
+  {% endif %}
+</ul>

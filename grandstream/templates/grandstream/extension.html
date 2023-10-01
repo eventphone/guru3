@@ -1,0 +1,15 @@
+<div class="alert alert-info">
+    <h5>Borrowed SIP-Phone information</h5>
+    <p>
+        The SIP phone can be configured via Web interface. The IP address of the phone is visible in its on-screen
+        menu.
+    </p>
+    {% if lending.extension.isPremium %}
+    <p>
+        Please note that your phone is provisioned for Eventphone's Premium phone service. It is thus not accessible
+        from the normal event network. Please connect your PC to the second Ethernet port of the phone to configure it.
+        <strong>Note that this network has no Internet access.</strong>
+    </p>
+    {% endif %}
+    <p>Use the following user password to log into the web interface: "<strong>{{grandstream.userPassword}}</strong>".</p>
+</div>

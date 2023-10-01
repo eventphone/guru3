@@ -1,0 +1,206 @@
+{% extends "master.html" %}
+
+{% block content %}
+<h1>Eventphone power user API</h1>
+
+<p>
+    Our power users (such as OCs) often asked us if we can support their workflows with a
+    way to programmatically access and modify extensions and call groups. The API enables you
+    to, for example, enable and disable call group members automatically when a shift changes
+    or automatically configure people with delay if they act as fallback based on your internal
+    time planning. Modification of extensions (call forwarding) is planned but will come a bit later.
+</p>
+
+<p>
+    The following API endpoints currently exist:
+<ul>
+    <li><a href="#callgroup.api">Callgroup membership management</a></li>
+    <li><a href="#callgroup.member.api">Callgroup member detail</a></li>
+</ul>
+</p>
+
+<h2>General API conventions</h2>
+<h3>API authentication</h3>
+
+<p>
+    All API endpoints can be accessed by setting an <code>ApiKey</code> header field with a user API key.
+    You can create/renew your (personalized) API key in your <a href="{% url "user.profile" %}">profile</a>.
+    Please note that the API key authentication mechanism can only be used in the <code>/api/…</code> URL space
+    of guru3 and is otherwise ignored.
+</p>
+
+<h3>Unique object URLs</h3>
+
+<p>
+    In order to prevent misinterpretation in situations with multiple upcoming or (even) concurrently running
+    events, the resource identifiers contain the event id in which the extension/callgroup etc lives. See the list
+    below for currently relevant event IDs.
+</p>
+<h4>Event IDs</h4>
+<ul>
+    {% for event in runningEvents %}
+    <li>{{event.name}}: {{event.pk}}</li>
+    {% endfor %}
+    {% for event in upcomingEvents %}
+    <li>{{event.name}}: {{event.pk}}</li>
+    {% endfor %}
+</ul>
+
+<h3>Data formats</h3>
+<p>
+    The API is JSON-based. All data requested via HTTP <code>GET</code> will be returned in JSON format. All data
+    that is submitted in HTTP <code>POST</code> or <code>PUT</code> needs to be in json as well and must be announced
+    with a <code>Content-type: appplication/json</code> header or will otherwise be rejected.
+</p>
+<p>
+    All JSON inputs to the API endpoints will be checked against a <a href="https://json-schema.org/">JSON Schema</a>.
+    The respective schemas that are used for validation are linked in the API endpoint documentation.
+</p>
+
+<h3 id="semantic-data-validation">Semantic data validation</h3>
+<p>
+    Some endpoints do semantic input validation in addition to the json-schema based syntactic validation.
+    This is analog to HTML input form validation that can give you an error if inputs are invalid. If your
+    request fails semantic validation, the API will return <code>HTTP 422 Unprocessable Entity</code>. The
+    response body will be json and gives you more information about what is going wrong.
+</p>
+<p>
+    The error information is a dictionary that (at least) has a key called "validation_errors". This is (again)
+    a dictionary that contains the errors for the fields that failed input validation. For each field, there is a
+    list of all problems that occurred while validation. The errors themselves are dictionaries with a human
+    readable "message" and a machine interpretable error "code".
+</p>
+<h5>Example</h5>
+<pre>
+{
+  "validation_errors": {
+    "extension": [
+      {
+        "message": "Adding this extension creates a loop: 2000 -> 2050",
+        "code": "extension-creates-loop"
+      }
+    ]
+  }
+}
+</pre>
+
+
+
+<h2 id="callgroup.api">Callgroup membership management endpoint</h2>
+<dl>
+    <dt>Endpoint</dt>
+    <dd><code>/api/event/&lt;event_id&gt;/callgroup/&lt;callgroup_extension&gt;</code> </dd>
+    <dt>Allowed HTTP methods</dt>
+    <dd><code>GET</code>, <code>POST</code></dd>
+    <dt>Permissions</dt>
+    <dd>
+        <ul>
+            <li>Members of the callgroup: View</li>
+            <li>Call group admins: View/Modify active state and delay</li>
+            <li>Call group owner: View list of admins</li>
+        </ul>
+    </dd>
+    <dt>JSONSchema</dt>
+    <dd><a href="{% url "callgroup.api.schema" %}">{{guru_url}}{% url "callgroup.api.schema" %}</a></dd>
+</dl>
+
+<h3>View member list</h3>
+The <code>GET</code> method can be used to retrieve a list of all members. This can be used by all members (even if
+they haven't confirmed their membership yet) and admins. The call group owner additionally gets a list of call group
+administrators.
+
+<h4>Example output</h4>
+<pre>
+{
+  "members": {
+    "2042": {
+      "accepted": true,
+      "active": true,
+      "delay_s": 0,
+      "invite_reason": "Please join the test group"
+    },
+    "2001": {
+      "accepted": false,
+      "active": false,
+      "delay_s": 10,
+      "invite_reason": "Join our amazing test group!"
+    }
+  },
+  "admins": [
+    "garwin",
+    "sascha"
+  ]
+}
+</pre>
+<h3>Modify member properties</h3>
+<p>
+    Call group administrators can <code>POST</code> a similar structure to the output of <code>GET</code> to modify the
+    <code>active</code> and the <code>delay_s</code> parameter of the respective member. If members do not appear
+    in the posted data, they are left unchanged. In the same way, you may also only post one of the parameters to
+    only modify this one and leave the other unchanged.
+</p>
+<p>
+    Please note that this interface can neither be used to add new members to a callgroup nor to remove members from
+    the group.
+</p>
+<p>
+    You can set these attributes irrespective of the acceptance state of invites. However, they will (of course)
+    only take effect once the membership to the call group is accepted.
+</p>
+
+<h2 id="callgroup.member.api">Callgroup member detail endpoint</h2>
+<dl>
+    <dt>Endpoint</dt>
+    <dd><code>/api/event/&lt;event_id&gt;/callgroup/&lt;callgroup_extension&gt;/member/&lt;extension&gt;</code> </dd>
+    <dt>Allowed HTTP methods</dt>
+    <dd><code>GET</code>, <code>PUT/POST</code>, <code>DELETE</code></dd>
+    <dt>Permissions</dt>
+    <dd>
+        <ul>
+            <li>Members of the callgroup: Accept invites, Pause/Unpause themselves</li>
+            <li>Call group admins: Invite members, Delete members, Edit member details</li>
+        </ul>
+    </dd>
+    <dt>JSONSchema</dt>
+    <dd><a href="{% url "callgroup.member.api.schema" %}">{{guru_url}}{% url "callgroup.member.api.schema" %}</a></dd>
+</dl>
+
+<h3>View member details</h3>
+
+A callgroup administrator can <code>GET</code> details on all members. Regular members can only request their
+own details. The response looks like this
+<pre>
+{
+  "accepted": false,
+  "active": false,
+  "delay_s": 10,
+  "invite_reason": "Join our amazing test group!"
+}
+</pre>
+
+<h3>Create/update member details</h3>
+<p>The structure as shown above can be <code>POST</code>ed or <code>PUT</code> to the same URL to create a call group
+    membership or update it if it already exists.</p>
+
+<p>
+    Call group administrators can create a membership invite by posting with <code>&lt;extension&gt;</code>
+    set to the new member. In this case, the <code>accepted</code> property must either be set to <code>false</code>
+    or not exist at all. Moreover, the <code>invite_reason</code> needs to be set.</p>
+<p>
+    Creating a new member may cause errors if the target extension does not exist in this event or if inviting
+    this member would cause an include-loop!. The former will cause an HTTP 404 code, the latter an HTTP 422 error.
+    (see <a href="#semantic-data-validation">Semantic data validation</a>)
+    If the invite was successfully created, the API returns HTTP code 201.
+</p>
+
+<p>
+    For already existing entries, call group adminstrators can update the <code>active</code> and <code>delay_s</code>
+    properties. The member itself can turn <code>accepted</code> to true or modify their own <code>active</code> state.
+</p>
+
+<h3>Delete members</h3>
+Either a member themself or a call group administrator can terminate the membership with an HTTP <code>DELETE</code>
+request.
+
+
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+{% if object %}
+    <h2>Inventory items</h2>
+    {% if object.isCurrentlyOnStock %}
+    <ul class="nav">
+        <li class="nav-item">
+            <a class="nav-link" href="{% url "inventory.item.lend" pk=object.pk %}"><span class="oi oi-transfer" aria-hidden="true"></span> Hand out</a>
+        </li>
+    </ul>
+    {% else %}
+    <div class="alert alert-secondary" role="alert">
+        {% with curLend=object.getCurrentLending %}
+        <ul class="nav float-right">
+            <li class="nav-item">
+                <a class="nav-link" href="{% url "inventory.item.return" pk=curLend.pk %}"><span class="oi oi-home" aria-hidden="true"></span> Return</a>
+            </li>
+        </ul>
+        <h5 class="alert-heading">Currently rented out</h5>
+        <p>
+        <dl class="row">
+            <dt class="col-sm-2">Event</dt>
+            <dd class="col-sm-10">{{curLend.event.name}}</dd>
+            <dt class="col-sm-2">Since</dt>
+            <dd class="col-sm-10">{{curLend.outDate|date:"d.m.Y H:i"}}</dd>
+            <dt class="col-sm-2">To</dt>
+            <dd class="col-sm-10">{{curLend.lender}}</dd>
+            {% if curLend.extension %}
+            <dt class="col-sm-2">Extension</dt>
+            <dd class="col-sm-10"><a class="alert-link" href="{% url "extension.edit" pk=curLend.extension.pk%}">{{curLend.extension.extension}}</a></dd>
+            {% endif %}
+        </dl>
+        </p>
+        {% endwith %}
+    </div>
+    {% endif %}
+
+{% else %}
+<h2>Create inventory item</h2>
+{% endif %}
+
+{{object.hook_display_item}}
+
+{% if form.errors %}
+<div class="alert alert-danger" role="alert">
+    Please correct your inputs!
+</div>
+{% endif %}
+
+{% crispy form form_helper %}
+
+{% if object %}
+<h3>Rental history</h3>
+<table class="table table-striped">
+    <thead><tr>
+        <th>Event</th>
+        <th>Out</th>
+        <th>In</th>
+        <th>Comment</th>
+        <th>Lender</th>
+        <th>Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for lending in object.getLendingList %}
+    <tr>
+        <td>{{lending.event.name}}</td>
+        <td>{{lending.outDate|date:"d.m.Y H:i"}}</td>
+        <td>{{lending.backDate|date:"d.m.Y H:i"}}</td>
+        <td>{{lending.comment}}</td>
+        <td>{{lending.lender}}</td>
+        <td>
+            <a href="{% url "inventory.item.lend_edit" pk=lending.pk %}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+<script>
+    $(document).ready(function() {
+        $("form input").keydown(function(event) {
+            if(event.keyCode == 13) {
+                event.preventDefault();
+                var all = $("form input");
+                var idx = all.index(this);
+                if (idx+1 < all.length) {
+                    all.get(idx+1).focus();
+                }
+                return false;
+            }
+        });
+    });
+</script>
+
+{% endblock %}

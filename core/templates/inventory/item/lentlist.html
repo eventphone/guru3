@@ -1,0 +1,60 @@
+{% extends "master.html" %}
+
+{% block content %}
+{% if view == "lent+all" %}
+{% include "inventory/item/inventory-nav.html" with view="lent+all" %}
+{% else %}
+{% include "inventory/item/inventory-nav.html" with view="lent" %}
+{% endif %}
+
+<h1>Lent items</h1>
+
+{% if view != "lent+all" %}
+<ul class="nav justify-content-end mb-2">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "inventory.item.lent.csv" %}"><span class="oi oi-data-transfer-download"></span> Download inventory CSV</a>
+  </li>
+</ul>
+{% endif %}
+
+
+<div>
+{% include "search-form.html" with placeholder="Descriptions, serial numbers, MACs, Extension, Lender ..." %}
+</div>
+<table class="table table-striped">
+  <thead><tr>
+    {% include "table-sort-header.html" with description="Type" key="type" %}
+    {% include "table-sort-header.html" with description="Description" key="description" %}
+    {% include "table-sort-header.html" with description="Barcode" key="barcode" %}
+    {% include "table-sort-header.html" with description="Extension" key="extension" %}
+    {% include "table-sort-header.html" with description="Name" key="name" %}
+    {% include "table-sort-header.html" with description="Lender" key="lender" %}
+    {% if view == "lent+all" %}
+    <th>Event</th>
+    {% endif %}
+    <th>Actions</th>
+  </tr></thead>
+  <tbody>
+  {% for object in object_list %}
+  <tr>
+    <td>{{object.item.itemType.name}}</td>
+    <td>{{object.item.description}}</td>
+    <td>{{object.item.barcode}}</td>
+    <td>{{object.extension.extension}}</td>
+    <td>{{object.extension.name}}</td>
+    <td>{{object.lender}}</td>
+    {% if view == "lent+all" %}
+    <td>{{object.event}}</td>
+    {% endif %}
+    <td>
+      <a href="{% url "inventory.item.return" pk=object.pk %}"><span class="oi oi-home" title="Gotten back" aria-hidden="true"></span></a>
+      <a href="{% url "inventory.item.edit" pk=object.item.pk %}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% include "pagination-search-footer.html" %}
+
+
+{% endblock %}

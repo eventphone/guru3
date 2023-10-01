@@ -1,0 +1,23 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-6" style="margin: 0 auto;">
+        <h2>Delete {% if object.group.type != "GROUP" %} multiring extension{% elif object.accepted %}callgroup membership{% else %}callgroup invitation{% endif %}</h2>
+        <form method="POST">
+            {% csrf_token %}
+            Do you really want to remove the {% if object.group.type != "GROUP" %} multiring membership{% elif object.accepted %}callgroup membership{% else %}callgroup invitation{% endif %}
+            of extension {{object.extension.extension}}
+            {% if object.accepted or object.extension.inPhonebook %}({{object.extension.name}}){% endif %}
+            {% if not object.accepted %}into{% else %}from{% endif %} {% if object.group.type != "GROUP" %} extension{% else %} callgroup{% endif %} {{object.group.extension}} ({{object.group.name}})
+            </p>
+            {{form.as_p}}
+            <div class="form-actions">
+                <button type="Submit" class="btn btn-danger">Delete</button>
+                <a href="{{next_view_path}}" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

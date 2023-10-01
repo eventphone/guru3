@@ -1,0 +1,5 @@
+You registered with Eventphone.
+
+Please use the following link to activate your account:
+
+https://{{site.domain}}{% url 'django_registration_activate' activation_key %}

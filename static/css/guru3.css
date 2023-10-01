@@ -1,0 +1,138 @@
+.form-signin {
+  width: 100%;
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+body {
+    background-color: #f8f9fa;
+}
+
+.form-icon {
+    display: inline;
+    color: #007bff;
+}
+
+.iicon {
+    width: 16px;
+    height: 16px;
+}
+.navbar span.oi {
+    color: rgba(255,255,255,.5);
+}
+
+.asteriskField {
+    display: none;
+}
+
+.form-grouper {
+    padding: 2em 1.5em 1.5em 1.5em;
+    margin-bottom: 1rem;
+    background-color: #f0f0f0;
+    position: relative;
+}
+
+.form-grouper-label {
+    position: absolute;
+    top: .5em;
+    left: .5em;
+    font-size: 75%;
+    color: #818a91;
+    text-transform: uppercase;
+}
+
+.invalid-feedback {
+  display: block;
+}
+
+div.sort-header {
+    position: relative;
+}
+
+.headerUnSorted {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width:12px;
+    height:16px;
+    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE0IDIwIj48cGF0aCBkPSJNMTQgMTNsLTIuNS0yLjVMNyAxNWwtNC41LTQuNUwwIDEzbDcgN3pNMTQgNy41TDExLjUgMTAgNyA1LjUgMi41IDEwIDAgNy41bDctN3oiLz48L3N2Zz4=);
+}
+.headerAsc {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width:12px;
+    height:12px;
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMiIgdmlld0JveD0iMCAwIDE0IDE0Ij48cGF0aCBkPSJNMTQgOS41TDExLjUgMTIgNyA3LjUgMi41IDEyIDAgOS41bDctN3oiLz48L3N2Zz4=);
+}
+.headerDesc {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width:12px;
+    height:12px;
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMiIgdmlld0JveD0iMCAwIDE0IDE0Ij48cGF0aCBkPSJNMTQgNWwtMi41LTIuNS00LjUgNC41LTQuNS00LjVMMCA1IDcgMTJ6Ii8+PC9zdmc+);
+}
+
+.select2-container .select2-selection--single span.select2-selection__rendered {
+    height: calc(2.25rem + 2px);
+    padding: .275rem .75rem;
+}
+
+.select2-container span.select2-selection--single {
+    height: calc(2.25rem + 2px);
+}
+
+.keyEntry, button.oi {
+    color: #007bff;
+    text-decoration: none;
+    background-color: transparent;
+    cursor:pointer;
+}
+
+.keyEntry:hover, button.oi:hover {
+    color: #0056b3;
+}
+
+/* word wrap in case of very long usernames */
+.username {
+  word-break: break-all;
+}
+
+@media only screen and (max-width: 1024px) {
+    .fancy-bar {
+        display: none;
+    }
+}
+
+.bt-success-colors {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+button.oi {
+    border: none;
+    padding: 0;
+}
+
+.icon-spin {
+    -webkit-animation: spin 2s infinite linear;
+    -moz-animation: spin 2s infinite linear;
+    -o-animation: spin 2s infinite linear;
+    animation: spin 2s infinite linear;
+}
+@-moz-keyframes spin {
+    from { -moz-transform: rotate(360deg); }
+    to { -moz-transform: rotate(0deg); }
+}
+@-webkit-keyframes spin {
+    from { -webkit-transform: rotate(360deg); }
+    to { -webkit-transform: rotate(0deg); }
+}
+@keyframes spin {
+    from {transform:rotate(360deg);}
+    to {transform:rotate(0deg);}
+}

@@ -1,0 +1,44 @@
+{% extends "master.html" %}
+
+{% block content %}
+
+<h1>Event organizers</h1>
+{% if isAlreadyOrganizer %}
+<div class="alert alert-success" role="alert">
+   You are an organizer already
+</div>
+<p>If you think that this is wrong, please contact our support.</p>
+{% else %}
+<div class="alert alert-info" role="alert">
+    Please be informed about the implications of this action.
+</div>
+
+<p>
+    This action will enable your account as event organizer for <strong>{{event.name}}</strong>. You will be able to
+    create extensions before the official registration has started and can also create them within the reserved
+    organizer's number range.
+</p>
+<p>
+    Moreover, you can apply for rental devices for all the extensions you create. Just select the type of device
+    you would like to get. We try to respect your requests as good as possible. However, certain types of devices
+    are limited and thus we might not be able to provide exactly what you asked for. You can check the status of your
+    rental device request either in the detailed view of the extension or in the organizer's telephone book.
+    Approved requests are shown in green there.
+</p>
+<p>
+    As a side effect, <strong>all your extensions</strong> for {{event.name}} (also those that you didn't register via the orga form and those that do not appear in the event's public telephone book),
+    <strong>are visible in the organizer's phone book</strong> together with your account name. This is intended to simplify event
+    organization as it makes transparent to all organizers which extensions already exist and which ones might still be
+  missing. Of course, private extensions do not appear in the <strong>public</strong> phonebook.
+</p>
+<p>
+    If you don't want that all of your extensions appear in  the organizer's phonebook, we recommend that you create a secondary
+    (or functional) account for official business matters.
+</p>
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-warning float-right">Understood, do it!</button>
+</form>
+{% endif %}
+
+{% endblock %}

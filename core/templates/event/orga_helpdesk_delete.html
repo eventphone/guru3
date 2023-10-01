@@ -1,0 +1,22 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<div class="row">
+<div class="col-md-6" style="margin: 0 auto;">
+    <h2>Delete {% if request.resolver_match.view_name == "event.orga.delete" %}Organizer{% else %}Helpdesk person{% endif %}</h2>
+        <form method="POST">
+            {% csrf_token %}
+            Do you really want to remove {{related_object.username}} as
+            {% if request.resolver_match.view_name == "event.orga.delete" %}Organizer{% else %}Helpdesk person{% endif %}
+            from the event {{object.name}}?
+            {{form.as_p}}
+            <div class="form-actions">
+                <button type="Submit" class="btn btn-danger">Delete</button>
+                <a href="../" class="btn">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

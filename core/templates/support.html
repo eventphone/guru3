@@ -1,0 +1,67 @@
+{% extends "master.html" %}
+
+{% block scripts %}
+<script id="zammad_form_script" src="https://support.eventphone.de/assets/form/form.js"></script>
+<script>
+$(function() {
+  $('#feedback-form').ZammadForm({
+    messageTitle: 'Issue premium support ticket',
+    messageSubmit: 'Submit',
+    messageThankYou: 'Thanks for your request (#%s). We will get back to you asap!',
+    showTitle: true,
+     attributes: [
+       {
+         display: 'Name',
+         name: 'name',
+         tag: 'input',
+         type: 'text',
+         placeholder: 'Your Name',
+         defaultValue: '{{ user.username }}'
+       },
+       {
+         display: 'Email',
+         name: 'email',
+         tag: 'input',
+         type: 'email',
+         placeholder: 'Your Email',
+         defaultValue: '{{ user.email }}'
+       },
+       {
+         display: 'Message',
+         name: 'body',
+         tag: 'textarea',
+         placeholder: 'Your Message...',
+         defaultValue: '',
+         rows: 7
+       }
+     ]
+  });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-6" style="margin: 0 auto;">
+        <center><h1>EVENTPHONE Support</h1></center>
+        <br>
+        You can find some helpful information here:
+        <ul>
+            <li><a href="https://eventphone.de/blog/">Eventphone Blog</a></li>
+            <li><a href="https://eventphone.de/doku/">Eventphone Wiki</a></li>
+            <li><a href="https://twitter.com/eventphone">Eventphone@Twitter</a></li>
+            <li><a href="https://www.youtube.com/c/eventphone">Eventphone@Youtube</a></li>
+            <li><a href="{% url "api.help" %}">Eventphone Guru3 API Documentation</a></li>
+        </ul>
+        If this does not help you can always get in touch with us:<br>
+        <ul>
+            <li>by writing an email to poc@eventphone.de</li>
+            <li>by sending a Telegram Message to <a href="tg://resolve?domain=eventphone_bot">@eventphone_bot</a></li>
+            <li>by opening an issue on <a href="https://github.com/eventphone/guru3/issues">GitHub</a></li>
+            <li>by creating a ticket below</li>
+        </ul>
+        <br>
+        <div id="feedback-form">form will be placed in here with javascript</div>
+</div>
+</div>
+{% endblock %}

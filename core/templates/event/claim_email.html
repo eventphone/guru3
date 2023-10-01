@@ -1,0 +1,84 @@
+{% extends "master.html" %}
+
+{% block content %}
+<h2>Send out extension claim emails for {{event.name}}</h2>
+
+<p>
+    This will send out the emails that people can use to claim their reserved extension. Please note that the
+    reservations must have been imported before hand with the import function. Only claims who have not been notified
+    via mail already will receive an email. So it is safe to use this function multiple times in case that new
+    claims were created or there was an error with the mail server.
+</p>
+
+<div class="alert alert-warning" role="alert">
+    Send out claim invitation emails for {{num_claims}} extensions.
+</div>
+
+<form method="post" id="email-form">
+    {% csrf_token %}
+    <button id="submit-send" class="btn btn-primary">Start sending</button>
+</form>
+
+<div id="email-results" style="display: none;">
+    <h2>Results</h2>
+    <p id="result-text"></p>
+    <ul id="result-errors"></ul>
+</div>
+
+<script>
+    var check_timer = null;
+    $(document).ready(function () {
+        $("#email-form").on("submit", function (event) {
+            event.preventDefault();
+
+            var form = $(this);
+            var post_url = form.attr("action");
+            $.ajax({
+                type: "POST",
+                data: form.serialize(),
+            })
+            .done(function(data, textStatus, xhr) {
+                $("#submit-send").attr("disabled", true);
+                $("#submit-send").html('<span class="oi oi-loop-circular icon-spin"></span> <span id="email-status">Pending...</span>');
+                check_timer = setInterval(function() { check_task_results(data["task_url"]); }, 2000);
+            })
+            .fail(function(data, textStatus, xhr) {
+                alert("An error occured: " + textStatus);
+            });
+
+        });
+    });
+
+    function check_task_results(task_url) {
+        $.getJSON(task_url, function(data) {
+            if (data["status"] == "SUCCESS") {
+                clearTimeout(check_timer);
+                $("#submit-send").html("Done");
+                if (data.hasOwnProperty("info")) {
+                    var error_list = data["info"];
+                    $("#email-results").show();
+                    if (error_list.length == 0) {
+                        $("#result-text").html("All emails were successfully sent");
+                    } else {
+                        $("#result-text").html("The following mails could not be sent");
+                        $("#result-errors").html("");
+                        error_list.forEach((elem) => {
+                            $("#result-errors").append($("<li>" + elem[0] + " - " + elem[1] + "</li>"));
+                        });
+                    }
+                }
+
+            } else if (data["status"] == "PROGRESS") {
+                if (data.hasOwnProperty("info")) {
+                    var info = data["info"];
+                    $("#email-status").html("Progress " + info["done"] + "/" + info["total"]);
+                }
+            } else if (data["status"] == "FAILURE") {
+                clearTimeout(check_timer);
+                $("#submit-send").html("Error :(");
+            }
+        });
+    }
+</script>
+
+{% endblock %}

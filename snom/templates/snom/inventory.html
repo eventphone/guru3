@@ -1,0 +1,16 @@
+<div class="alert alert-info">
+    <h5>Snom phone</h5>
+    <dl class="row">
+        <dt class="col-sm-2">Web user</dt>
+        <dd class="col-sm-10">eventphone</dd>
+        <dt class="col-sm-2">Web password</dt>
+        <dd class="col-sm-10">{{snom.httpServerPassword}}</dd>
+        <dt class="col-sm-2">Admin password</dt>
+        <dd class="col-sm-10">{{snom.adminPassword}}</dd>
+        <dt class="col-sm-2">Detected phone model</dt>
+        <dd class="col-sm-10">{{snom.model}}</dd>
+        <dt class="col-sm-2">Last seen user agent</dt>
+        <dd class="col-sm-10">{{snom.userAgent}}</dd>
+    </dl>
+    <a href="{% url "snom.provisioning.debug" mac=snom.mac %}">Debug Provisioning</a>
+</div>

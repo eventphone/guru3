@@ -1,0 +1,144 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+{% load legacy_url %}
+{% block current_event %}
+{{form.event.name}}
+{% endblock %}
+
+{% block content %}
+{% if object %}
+<h1>Extension {{object.extension}} ({{object.name}})</h1>
+{% else %}
+<h1>Create new {% if form.fields.type.initial == "GROUP" %}callgroup{% else %}extension{% endif %}</h1>
+{% endif %}
+
+{% if object and object.type != "GROUP" %}
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item">
+        <a class="nav-link active" href="#">Config</a>
+    </li>
+    {% if not object.sip_trunk %}
+    {% if not object.type == "ANNOUNCEMENT" and not object.type == "SPECIAL" and not object.type == "APP" %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url "extension.multiring" pk=object.pk %}{% if request.GET.next_url %}?next_url={{request.GET.next_url}}{% endif %}">Multiring</a>
+    </li>
+    {% endif %}
+    <li class="nav-item mr-3">
+        <a class="nav-link" href="{% url "extension.references" pk=object.pk %}{% if request.GET.next_url %}?next_url={{request.GET.next_url}}{% endif %}">References</a>
+    </li>
+    {% if object.type == "DECT" %}
+    <li class="nav-item">
+        <div class="form-actions">
+            <form method="POST" action="{% url "extension.unsubscribe" pk=object.pk %}">
+                {% csrf_token %}
+                <button title="Unsubscribe's your current DECT phone, which renders your extensions available again." type="Submit" class="btn btn-danger">
+                    Unsubscribe DECT
+                </button>
+            </form>
+        </div>
+    </li>
+    {% endif %}
+    {% else %}
+    <li class="nav-item">
+        <a class="nav-link disabled" href="#">Multiring</a>
+    </li>
+    <li class="nav-item disabled mr-3">
+        <a class="nav-link disabled" href="#">References</a>
+    </li>
+    {% endif %}
+</ul>
+{% endif %}
+
+{% if object and object.currentLending %}
+{{object.currentLending.hook_display_extension}}
+{% endif %}
+
+{% if form.errors %}
+<div class="alert alert-danger" role="alert">
+    Please correct your inputs!
+</div>
+{% endif %}
+
+{% crispy form form.get_form_helper %}
+
+<script>
+    function updateExtraBox(newType) {
+        $(".form-ext-specific").hide();
+        $(".form-ext-specific[data-extension-type=\""+ newType + "\"]").show();
+    }
+
+    function updateForwardDisplay(currentType) {
+            if (currentType != "ENABLED") {
+                $("#div_id_forward_delay").hide();
+            } else {
+                $("#div_id_forward_delay").show();
+            }
+    }
+
+    $(document).ready(function () {
+        var currType = $("#id_type").val();
+        updateExtraBox(currType);
+        updateForwardDisplay($("#id_forward_mode").val());
+
+        $("#id_forward_mode").change(function () {
+            updateForwardDisplay($(this).val());
+        });
+
+        $("#id_type").change(function () {
+            var newType = $(this).val();
+            updateExtraBox(newType);
+        });
+        var $extension = $('#id_extension');
+        var hint_id_extension = $('#hint_id_extension').detach();
+        hint_id_extension.insertAfter($extension.parent());
+        $extension.parent().addClass("input-group");
+        $extension.after('<div class="input-group-append">' +
+            '<button class="btn btn-outline-secondary" type="button" id="random_extension" title="I\'m too lazy: generate one for me"><span class="oi oi-random"></span></button>' +
+            '<a class="btn btn-outline-secondary" role="button" title="I want to see all available extensions" href="{% legacy_url "extension.unused" event=form.event.pk %}" target="_blank"><span class="oi oi-list"></span></a>' +
+            '</div>');
+        $('#random_extension').click(function() {
+            $.get("{% url "event.random" pk=form.event.pk %}", function(data) {
+                $("#id_extension").val(data);
+            });
+        });
+        {% if object.sip_trunk %}
+        $("#forward_grouper").hide();
+        {% endif %}
+    });
+</script>
+<style>
+#div_id_twoGOptIn label:after,
+#div_id_threeGOptIn label:after,
+#div_id_fourGOptIn label:after {
+    color: #212529;
+    display: inline-block;
+    padding: .25em .4em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25rem;
+    width: auto;
+    height: auto;
+    position: inherit;
+    background-image: none;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+#div_id_twoGOptIn label:after {
+    background-color: #28a745;
+    content: "Most stable";
+}
+
+#div_id_threeGOptIn label:after {
+    background-color: #ffc107;
+    content: "Testing";
+}
+#div_id_fourGOptIn label:after {
+    background-color: #dc3545;
+    content: "Highly experimental";
+}
+</style>
+
+{% endblock %}

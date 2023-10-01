@@ -1,0 +1,37 @@
+{% extends "master.html" %}
+{% block content %}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url "event.edit" pk=event.pk %}">{{event.name}}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Mgr API key</li>
+    </ol>
+</nav>
+
+
+{% if new_key %}
+
+Use the following api key to configure in mgr for {{event.name}}:<br/>
+
+<p class="text-monospace">{{mgr_key}}</p>
+
+{% else %}
+<div class="alert alert-danger" role="alert">
+    This is a potentially dangerous functionality!
+</div>
+
+<p>
+    This will generate a new API key to be used in the mgr software for this event. Please note
+    that this action will immediately invalidate the old API key. Moreover, the API key will only
+    be shown once here. If you lose it, just generate a new one.
+</p>
+
+<form method="POST">
+{% csrf_token %}
+<button type="submit" class="btn btn-danger float-right">Generate new mgr API key</button>
+</form>
+
+{% endif %}
+
+{% endblock %}
+

@@ -1,0 +1,106 @@
+﻿{% load static %}
+{% load gelbeseiten %}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="{% static "assets/ephone-icon.png" %}">
+    <link href="{% static "open-iconic/font/css/open-iconic-bootstrap.css" %}" rel="stylesheet"/>
+
+    <title>Verzeichniss der bei der Fernsprecheinrichtung Betheiligten</title>
+    <style type="text/css">
+        @font-face {
+            font-family: 'IM FELL DW Pica';
+            src: url('{% static "fonts/IM_FELL_DW_Pica_Italic.woff2" %}') format('woff2'),
+                 url('{% static "fonts/IM_FELL_DW_Pica_Italic.woff" %}') format('woff'),
+                 url('{% static "fonts/IM_FELL_DW_Pica_Italic.ttf" %}') format('truetype');
+            font-weight: normal;
+            font-style: italic;
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'IM FELL DW Pica';
+            src: url('{% static "fonts/IM_FELL_DW_Pica_Roman.woff2" %}') format('woff2'),
+                 url('{% static "fonts/IM_FELL_DW_Pica_Roman.woff" %}') format('woff'),
+                 url('{% static "fonts/IM_FELL_DW_Pica_Roman.ttf" %}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+        body {
+            font-family: 'IM FELL DW Pica', serif;
+            margin: 0;
+            background-image: url('{% static "assets/background.jpg" %}'); /* CC-BY-SA 3.0 Museumsstiftung Post und Telekommunikation */
+        }
+        .container {
+            padding: 1rem;
+        }
+        .container {
+            column-width: 14em;
+            column-fill: balance;
+        }
+        .entry-extension {
+            color: black;
+            text-decoration: none;
+            order: 4;
+        }
+        .entry {
+            display: flex;
+        }
+        .entry .oi {
+            display: none;
+            order: 1;
+        }
+        .entry-name {
+            font-weight: bold;
+        }
+        .entry.ad {
+            border: .2rem solid black;
+            padding: 1rem;
+            flex-wrap: wrap;
+        }
+        .entry.ad .oi {
+            display: inline-block;
+            width: 100%
+        }
+        .entry.ad .entry-text {
+            width: 100%;
+            padding: 1ex 0 .5ex 0;
+        }
+        .entry-text {
+            order: 2;
+        }
+
+        .entry:after {
+            content: "";
+            border-bottom: dotted;
+            flex-grow: 1;
+            order: 3;
+            margin: .5rem;
+        }
+        .entry.ad:after {
+            content: none;
+        }
+    </style>
+</head>
+<body>
+<main role="main" class="container">
+    {% for ext in object_list %}
+    <div class="entry {% is_ad %}">
+        <span class="oi oi-{% random_icon %}"></span>
+        <span class="entry-text">
+        <span class="entry-name">{{ext.name}}</span>
+        {% if ext.location %}
+        <span class="entry-location">{{ext.location}}</span>
+        {% endif %}
+        </span>
+        <a class="entry-extension" href="tel:{{ext.extension}}">{{ext.extension}}</a>
+    </div>
+    {% endfor %}
+</main>
+</body>
+</html>

@@ -1,0 +1,68 @@
+{% extends "master.html" %}
+
+{% block content %}
+<h2>EPDDI client and connection information</h2>
+
+<h3>VPN configuration</h3>
+<table>
+    <tr>
+        <td>EPDDI VPN network</td>
+        <td>{{EPDDI_NETWORK}}</td>
+    </tr>
+    <tr>
+        <td>VPN server address</td>
+        <td>{{EPDDI_VPN_CONCENTRATOR_SERVER_HOSTNAME}}</td>
+    </tr>
+    <tr>
+        <td>VPN server CA certificate</td>
+        <td>
+            <a href="{{EPDDI_VPN_CONCENTRATOR_SERVER_CA_CERT_URL}}">
+                <span class="oi oi-data-transfer-download"></span>
+            </a>
+        </td>
+    </tr>
+</table>
+
+<h3 class="mt-2">Antennae network configuration</h3>
+<table>
+    <tr>
+        <td>Assigned network</td>
+        <td>{{client.dect_network.as_netaddr}}</td>
+    </tr>
+    <tr>
+        <td>Your router IP</td>
+        <td>{{client.dect_network.get_router_ip}}</td>
+    </tr>
+    <tr>
+        <td>DHCP relay target</td>
+        <td>{{EPDDI_VPN_CONCENTRATOR_ADDRESS}}</td>
+    </tr>
+    <tr>
+        <td>Antenna control endpoint</td>
+        <td>{{EPDDI_OMM_ADDRESS}}</td>
+    </tr>
+    <tr>
+        <td>Eventphone RTP endpoint</td>
+        <td>{{EPDDI_YATE_RTP_ADDRESS}}</td>
+    </tr>
+    <tr>
+        <td>Eventphone RTP range</td>
+        <td>{{EPDDI_YATE_RTP_PORT_RANGE_START}}-{{EPDDI_YATE_RTP_PORT_RANGE_END}}</td>
+    </tr>
+    <tr>
+        <td>Antennae RTP range</td>
+        <td>{{EPDDI_ANTENNAE_RTP_PORT_RANGE_START}}-{{EPDDI_ANTENNAE_RTP_PORT_RANGE_END}}</td>
+    </tr>
+</table>
+
+<h3 class="mt-2">Client certificate</h3>
+{% if client.vpn_certificate_pem != "" %}
+<code style="white-space: pre-line">
+    {{client.vpn_certificate_pem}}
+</code>
+{% else %}
+Get a client certificate <a href="{% url "epddi.cert" pk=client.pk %}">here</a>
+{% endif %}
+
+
+{% endblock %}

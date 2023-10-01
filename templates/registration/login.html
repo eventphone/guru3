@@ -1,0 +1,24 @@
+{% extends "master.html" %}
+{% load static %}
+{% load crispy_forms_filters %}
+{% load legacy_url %}
+{% block menu %}{% endblock %}
+
+{% block content %}
+<style>
+body {
+    background-color: #333;
+    color: #fff;
+    padding-top: 40px;
+}
+</style>
+<form method="POST" class="form-signin">
+    <img class="mb-4" src="{% static "assets/eventphone_logo_schriftzug.svg" %}" width="100%" />
+    {% csrf_token %}
+    {{form|crispy}}
+    <input type="hidden" name="next" value="{{ next }}" />
+    <button class="btn btn-lg btn-primary btn-block mb-4">Sign in</button>
+    <p><a href="{% legacy_url "user.register" %}">Register?</a></p>
+    <p class="text-muted"><a href="{% legacy_url 'password_reset' %}">Forgot password?</a></p>
+</form>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% load url_extra %}
+{% if is_paginated %}
+<nav aria-label="Page navigation">
+  <ul class="pagination">
+    <li class="page-item{% if not page_obj.has_previous %} disabled{% endif %}">
+        <a class="page-link" href="{% if page_obj.has_previous %}?{% url_parameters search_params page=1 %}{% endif %}" {% if not page_obj.has_previous %}tabindex="-1"{% endif %}>&laquo; First</a>
+    </li>
+    <li class="page-item{% if not page_obj.has_previous %} disabled{% endif %}">
+        <a class="page-link" href="{% if page_obj.has_previous %}?{% url_parameters search_params page=page_obj.previous_page_number %}{% endif %}" {% if not page_obj.has_previous %}tabindex="-1"{% endif %}>Previous</a>
+    </li>
+    <li class="page-item{% if page_obj.number == page %} active{% endif %}">
+        <a class="page-link" href="?{% url_parameters search_params page=page_obj.number %}"> {{page_obj.number}} / {{page_obj.paginator.num_pages}}</a>
+    </li>
+    <li class="page-item{% if not page_obj.has_next %} disabled{% endif %}">
+        <a class="page-link" href="{% if page_obj.has_next %}?{% url_parameters search_params page=page_obj.next_page_number %}{% endif %}" {% if not page_obj.has_next %}tabindex="-1"{% endif %}>Next</a>
+    </li>
+    <li class="page-item{% if not page_obj.has_next %} disabled{% endif %}">
+        <a class="page-link" href="{% if page_obj.has_next %}?{% url_parameters search_params page=page_obj.paginator.num_pages %}{% endif %}" {% if not page_obj.has_next %}tabindex="-1"{% endif %}>Last &raquo;</a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
+
+<script>
+var searchTimeout = null;
+
+$(document).ready(function () {
+    $("#searchString").keyup(function () {
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+        searchTimeout = setTimeout(function() {
+            if ($("#searchString").val().length >= 3) {
+                $("form.js-search").submit();
+            }
+        }, 1000);
+    });
+    var cont=$("#searchString").val();
+    contLen = cont.length;
+    $("#searchString").get(0).setSelectionRange(contLen, contLen);
+});
+</script>

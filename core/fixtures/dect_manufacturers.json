@@ -1,0 +1,219 @@
+[
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 1,
+        "fields": {
+            "display_name": "Aastra"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 2,
+        "fields": {
+            "display_name": "AEG"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 3,
+        "fields": {
+            "display_name": "Alcatel"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 4,
+        "fields": {
+            "display_name": "Avaya"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 5,
+        "fields": {
+            "display_name": "AVM"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 6,
+        "fields": {
+            "display_name": "BT"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 7,
+        "fields": {
+            "display_name": "Cisco"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 8,
+        "fields": {
+            "display_name": "Cocoon"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 9,
+        "fields": {
+            "display_name": "Gigaset"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 10,
+        "fields": {
+            "display_name": "Grandstream"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 11,
+        "fields": {
+            "display_name": "Grundig"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 12,
+        "fields": {
+            "display_name": "Medion"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 13,
+        "fields": {
+            "display_name": "Motorola"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 14,
+        "fields": {
+            "display_name": "Orchid"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 15,
+        "fields": {
+            "display_name": "Panasonic"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 16,
+        "fields": {
+            "display_name": "Pentatec"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 17,
+        "fields": {
+            "display_name": "Philips"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 18,
+        "fields": {
+            "display_name": "Plantronics"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 19,
+        "fields": {
+            "display_name": "Polycom"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 20,
+        "fields": {
+            "display_name": "Profoon"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 21,
+        "fields": {
+            "display_name": "Snom"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 22,
+        "fields": {
+            "display_name": "Swisscom"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 23,
+        "fields": {
+            "display_name": "Swissvoice"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 24,
+        "fields": {
+            "display_name": "Telekom"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 25,
+        "fields": {
+            "display_name": "Topcom"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 26,
+        "fields": {
+            "display_name": "Unify"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 27,
+        "fields": {
+            "display_name": "Yealink"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 28,
+        "fields": {
+            "display_name": "Siemens"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 29,
+        "fields": {
+            "display_name": "DeTeWe"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 30,
+        "fields": {
+            "display_name": "Mitel"
+        }
+    },
+    {
+        "model": "core.DECTManufacturer",
+        "pk": 31,
+        "fields": {
+            "display_name": "Olympia"
+        }
+    }
+]

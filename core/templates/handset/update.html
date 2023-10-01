@@ -1,0 +1,48 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+{% load legacy_url %}
+
+{% block content %}
+{% if object %}
+<h2>Edit handset</h2>
+{% else %}
+<h2>Create a new handset</h2>
+{% endif %}
+
+{% if form.errors %}
+<div class="alert alert-danger" role="alert">
+    Please correct your inputs!
+</div>
+{% endif %}
+
+{% crispy form form_helper %}
+
+{% if object %}
+<h3>Usage history</h3>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Event</th>
+      <th>Number</th>
+      <th>Description</th>
+      <th>Location</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for extension in object.get_extension_history %}
+    <tr>
+      <td>{{extension.event}}</td>
+      <td>{{extension.extension}}</td>
+      <td>{{extension.name}}</td>
+      <td>{{extension.location}}</td>
+      <td>
+        <a href="{% legacy_url "extension.edit" pk=extension.pk %}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% endblock %}

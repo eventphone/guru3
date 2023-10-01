@@ -1,0 +1,37 @@
+{% extends "master.html" %}
+
+{% block content %}
+
+<h1>Events import result</h1>
+
+
+<table class="table table-striped">
+    <thead><tr>
+        <th>Extension</th>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Status</th>
+    </tr></thead>
+    <tbody>
+    {% for result in results %}
+    <tr>
+        <td>{{result.extension.extension}}</td>
+        <td>{{result.extension.name}}</td>
+        <td>{{result.extension.get_type_display}}<td>
+        <td>
+        {% if result.status == "OK" %}
+        <span class="text-success">OK</span>
+        {% elif result.status == "CONFLICT" %}
+        <span class="text-danger">
+        Conflicts existing:
+        {% for ext in result.conflict %}
+        {{ext.extension}} ({{ext.name}}){% if not forloop.last %},{% endif %}
+        {% endfor %}
+        </span>
+        {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

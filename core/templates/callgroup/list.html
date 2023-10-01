@@ -1,0 +1,93 @@
+{% extends "master.html" %}
+{% load legacy_url %}
+{% load formstyle %}
+
+{% block content %}
+{% if list_user %}
+    <h1>Call group overview for {{ list_user.username }}</h1>
+{% else %}
+    <h1>Call group overview</h1>
+{% endif %}
+{% if currentEvent %}
+<ul class="nav justify-content-end mb-2">
+  <li class="nav-item">
+    <a class="nav-link" href="{% url "callgroup.new" %}?next_url={{signedCurrentURL}}"><span class="oi oi-plus"></span> Add call group for {{ currentEvent.name }}</a>
+  </li>
+</ul>
+{% endif %}
+
+{% if invites_list %}
+<h2>Open invites</h2>
+<table class="table table-striped">
+    <thead><tr>
+        <th>Callgroup</th>
+        <th>Callgroup Name</th>
+        <th>Your extension</th>
+        <th>Extension name</th>
+        <th>Actions</th>
+    </tr></thead>
+    <tbody>
+    {% for invite in invites_list %}
+    <tr>
+        <td>{{invite.group.extension}}</td>
+        <td>{{invite.group.name}}</td>
+        <td>{{invite.extension.extension}}</td>
+        <td>{{invite.extension.name}}</td>
+        <td>
+            {% form_post_button "check" "Accept membership" "callgroup.member.accept" pk=invite.pk next=request.path %}
+            <a href="{% url "callgroup.member.delete" pk=invite.pk %}?next={{request.path|urlencode}}"><span class="oi oi-x" title="Decline" aria-hidden="true"></span></a>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+{% regroup object_list by event as callgroup_by_event_list %}
+{% for event, callgroup_list in callgroup_by_event_list %}
+<h3>{{event.name}}</h3>
+<table class="table table-striped">
+    <thead><tr>
+        <th>Extension</th>
+        <th>Name</th>
+        <th>Location</th>
+        {% if userIsCurrentEventAdmin %}
+        <th>Owner</th>
+        {% endif %}
+        <th>Actions</th>
+    </tr></thead>
+    <tbody>
+        {% for callgroup in callgroup_list %}
+        <tr>
+            <td>
+                {% if callgroup.inPhonebook %}
+                    <span class="oi oi-eye" title="Listed in Phonebook" aria-hidden="true"></span>
+                {% else %}
+                    <span class="oi oi-shield" title="Not in Phonebook" aria-hidden="true"></span>
+                {% endif %}
+                {{callgroup.extension}}</td>
+            <td>{{callgroup.name}}</td>
+            <td>{{callgroup.location}}</td>
+            {% if userIsCurrentEventAdmin %}
+            <td>{{callgroup.owner}}</td>
+            {% endif %}
+            <td>
+                <a href="{% legacy_url "callgroup.members" pk=callgroup.pk %}"><span class="oi oi-list" title="Membership editor" aria-hidden="true"></span></a>
+
+                <a href="{% url "callgroup.edit" pk=callgroup.pk %}?next_url={{signedCurrentURL}}"><span class="oi oi-pencil" title="Edit call group settings" aria-hidden="true"></span></a>
+                {% if user == callgroup.owner or userIsCurrentEventAdmin %}
+                <a href="{% legacy_url "callgroup.admins" pk=callgroup.pk %}"><span class="oi oi-people" title="Administrators editor" aria-hidden="true"></span></a>
+                <a href="{% url "extension.delete" pk=callgroup.pk %}?next={{request.path|urlencode}}"><span class="oi oi-x" title="Delete call group" aria-hidden="true"></span></a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endfor %}
+<script>
+$(function () {
+  $('[data-toggle="popover"]').popover()
+})
+</script>
+{% endblock %}
