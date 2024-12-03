@@ -18,7 +18,7 @@ tool on your own (due to the inherent complexity) and will probably not provide 
 If you want to use Guru3 as user front-end for your event with your telephony system, we recommend implementing the
 messaging wire protocol (see core/messaging.py). We offer using the official Guru3 instance at
 https://guru3.eventphone.de also for smaller (non-profit) events. If you're interested here, contact us at
-support@eventphone.de.
+poc@eventphone.de.
 
 ## Contributing
 
