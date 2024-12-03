@@ -9,7 +9,7 @@ from grandstream.grandstream import *
 from grandstream.grandstream_screen import get_defaultscreen
 from guru3 import settings
 
-gammelstream_extractor_re = re.compile("^.*HW (?P<hw_model>.*) SW (?P<sw_version>[0-9]+\.[0-9]+\.[0-9]+).*$")
+gammelstream_extractor_re = re.compile("^.*HW (?P<hw_model>.*) SW (?P<sw_version>[0-9]+\\.[0-9]+\\.[0-9]+).*$")
 
 def create_baseconfig(scheme:str, host:str, mac: str):
     host = host.split(':')[0]

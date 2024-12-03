@@ -33,8 +33,8 @@ class AudioFileForm(ModelForm):
 
     def clean_file(self):
         file_count = AudioFile.objects.filter(owner=self.user).count()
-        if file_count > 5 and not self.user.is_staff:
-            raise ValidationError(_('User quota exceeded. Delete files first. 5 files maximum.'), code='maxfiles')
+        if file_count >= 50 and not self.user.is_staff:
+            raise ValidationError(_('User quota exceeded. Delete files first. 50 files maximum.'), code='maxfiles')
         file = self.cleaned_data.get('file', False)
         if file.size > (5*1024*1024):
             raise ValidationError(_('Audio File is to large (>5MB)'), code='toolarge')

@@ -145,7 +145,7 @@ class BaseMembershipView(ObjectPermCheckMixin, MultiFormView, SingleObjectMixin)
     @cached_property
     def group_invites(self):
         object = self.get_object()
-        invites = CallGroupInvite.objects.filter(group=object)
+        invites = CallGroupInvite.get_invites(object, self.request.user)
         return list(invites)
 
     def get_context_data(self, **kwargs):
@@ -203,8 +203,9 @@ class SerializationError(Exception):
 
 
 class CallgroupMemberSerialierDeserializer:
-    def __init__(self, callgroup):
+    def __init__(self, callgroup, user):
         self._callgroup = callgroup
+        self._user = user
 
     @staticmethod
     def serialize_member(member):
@@ -237,7 +238,8 @@ class CallgroupMemberSerialierDeserializer:
         return membership
 
     def serialize(self, include_admins=False):
-        memberships = CallGroupInvite.objects.select_related("extension").filter(group=self._callgroup)
+        memberships = CallGroupInvite.get_invites(group=self._callgroup, requesting_user=self._user,
+                                                  base_queryset=CallGroupInvite.objects.select_related("extension"))
         result = {
             "members": {
                 member.extension.extension: self.serialize_member(member) for member in memberships
@@ -309,7 +311,7 @@ class CallgroupMembershipApiView(ObjectPermCheckMixin, EventExtensionObjectMixin
         if self.object.type != "GROUP":
             raise Http404
 
-        serializer = CallgroupMemberSerialierDeserializer(self.object)
+        serializer = CallgroupMemberSerialierDeserializer(self.object, self.request.user)
         include_admins = self.request.user == self.object.owner or self.object.event.isEventAdmin(self.request.user)
         return self.json_response(serializer.serialize(include_admins))
 
@@ -317,7 +319,7 @@ class CallgroupMembershipApiView(ObjectPermCheckMixin, EventExtensionObjectMixin
         if self.object.type != "GROUP":
             raise Http404
 
-        serializer = CallgroupMemberSerialierDeserializer(self.object)
+        serializer = CallgroupMemberSerialierDeserializer(self.object, self.request.user)
         try:
             serializer.update(json_data)
             return self.get(request)
@@ -362,6 +364,8 @@ class CallgroupMemberApiView(ObjectPermCheckGETMixin, EventExtensionObjectMixin,
         if self.object.type != "GROUP":
             raise Http404
         membership = self.get_membership()
+        if not membership.has_read_permission(self.request.user):
+            raise Http404 # if this is an unaccepted invite by another user, we mask it here
         return self.json_response_membership(membership)
 
     def process_delete(self, request):
@@ -435,7 +439,7 @@ class CallgroupMemberApiView(ObjectPermCheckGETMixin, EventExtensionObjectMixin,
                 }
             }, status=422)
 
-        serializer = CallgroupMemberSerialierDeserializer(self.object)
+        serializer = CallgroupMemberSerialierDeserializer(self.object, request.user)
         membership = serializer.member_from_data(target, json_data, request.user)
         with transaction.atomic():
             membership.save()

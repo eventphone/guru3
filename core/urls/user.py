@@ -11,7 +11,7 @@ from gcontrib.views.list import SearchView
 from core.decorators import user_is_current_event_admin
 from core.forms.user import AdminUserEditForm
 from core.views.user import (UserProfileView, userSearch, UserAutocompleteView, send_reset_password_link, InvoiceView,
-                             UserApiKeyCreationView, delete_api_key)
+                             UserApiKeyCreationView, delete_api_key, confirm_new_mail)
 
 urlpatterns = [
     path("list",
@@ -70,4 +70,7 @@ urlpatterns = [
     path("<int:pk>/deleteapikey",
          user_is_superuser(delete_api_key),
          name="user.deleteapikey"),
+    path("confirm_new_mail/<str:signed_data>",
+         confirm_new_mail,
+         name="user.confirm_new_mail"),
 ]

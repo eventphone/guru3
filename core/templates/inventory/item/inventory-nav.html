@@ -1,9 +1,18 @@
 <ul class="nav nav-pills">
   <li class="nav-item">
-    <a class="nav-link{% if view == "inventory" %} active{% endif %}" href="{% url "inventory.item.list" %}">Inventory</a>
+    <a class="nav-link{% if view == "event_inventory" %} active{% endif %}" href="{% url "inventory.item.event_list" %}">Inventory (event)</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link{% if view == "lent" %} active{% endif %}" href="{% url "inventory.item.lent" %}">Lent (current event)</a>
+    <a class="nav-link{% if view == "inventory" %} active{% endif %}" href="{% url "inventory.item.list" %}">Inventory (all)</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link{% if view == "event_available" %} active{% endif %}" href="{% url "inventory.item.event_available" %}">Available (current event)</a>
+  </li>
+  <li class="nav-item">
+      <a class="nav-link{% if view == "lent" %} active{% endif %}" href="{% url "inventory.item.lent" %}">Lent (current event)</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link{% if view == "recall" %} active{% endif %}" href="{% url "inventory.recall_status" %}">Recall status</a>
   </li>
   {% if request.user.is_staff %}
   <li class="nav-item">

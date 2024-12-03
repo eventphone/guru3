@@ -110,6 +110,8 @@ EPDDI_VPN_CONCENTRATOR_SERVER_HOSTNAME = "epddi-vpn.eventphone.de"
 EPDDI_MIKROTIK_ADMIN_PW_LENGTH = 16
 EPDDI_API_KEY = ""
 
+SMTP_REGISTER_BRIDGE_PORT = 8025
+
 # Import some other settings
 try:
     from guru3.privateSettings import *

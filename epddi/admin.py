@@ -3,6 +3,8 @@ from django.contrib import admin
 # Register your models here.
 from epddi.models import *
 
+class EPDDIClientAdmin(admin.ModelAdmin):
+    list_display = ('description','hostname','last_connected')
 
 class MikrotikRouterAdmin(admin.ModelAdmin):
     list_display = ('client', 'last_config_update')
@@ -16,6 +18,6 @@ class MikrotikConfigUpdateAdmin(admin.ModelAdmin):
 
 admin.site.register(DECTIPNetwork)
 admin.site.register(MikrotikRouter,MikrotikRouterAdmin)
-admin.site.register(EPDDIClient)
+admin.site.register(EPDDIClient,EPDDIClientAdmin)
 admin.site.register(ClientCertRevocation)
 admin.site.register(MikrotikConfigUpdate, MikrotikConfigUpdateAdmin)

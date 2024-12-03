@@ -34,6 +34,10 @@ class EventForm(ModelForm):
             "isPermanentAndPublic",
             "regularSipServer",
             "timezone",
+            "gsm2G",
+            "gsm3G",
+            "gsm4G",
+            "gsm5G",
         ]
 
     def clean(self):
@@ -121,6 +125,13 @@ def createEventFormhelper():
             Field("hasApp"),
             Field("hasGSM"),
             GroupLabel(_("Extension types")),
+        ),
+        FormGroup(
+            Field("gsm2G"),
+            Field("gsm3G"),
+            Field("gsm4G"),
+            Field("gsm5G"),
+            GroupLabel(_("Mobile Network Technologies"))
         ),
         HTML("""
 {% if form.instance.pk %}

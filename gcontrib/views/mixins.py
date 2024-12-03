@@ -14,7 +14,10 @@ class FormHelperMixin(object):
             kwargs[self.form_helper_name] = self.form_helper
         else:
             form = self.get_form_class()
-            kwargs[self.form_helper_name] = defaultLayout(form, self.form_submit_button_text)
+            if hasattr(form, "form_helper"):
+                kwargs[self.form_helper_name] = self.get_form().form_helper
+            else:
+                kwargs[self.form_helper_name] = defaultLayout(form, self.form_submit_button_text)
         return super(FormHelperMixin, self).get_context_data(**kwargs)
 
 
@@ -86,7 +89,7 @@ class FlexibleTemplateParamsMixin(object):
         for key, value in self.template_params.items():
             if callable(value):
                 context[key] = value(self.request, self.kwargs)
-            elif issubclass(value, Model):
+            elif isinstance(value, type) and issubclass(value, Model):
                 context[key] = value._default_manager.all()
             else:
                 context[key] = value._clone()

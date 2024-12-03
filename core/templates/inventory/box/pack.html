@@ -1,0 +1,116 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<h1>Pack a box</h1>
+
+{% if request.GET.success %}
+<div class="alert alert-success" role="alert">
+  Box packed successfully
+</div>
+{% endif %}
+
+{% crispy form form.form_helper %}
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const box_barcode = document.getElementById('id_box_barcode');
+        const content_barcodes = document.getElementById('id_content_barcodes');
+
+        const box_desc = document.getElementById("box_description");
+        const content_desc = document.getElementById("box_content_description");
+        content_desc.current_items = []
+        content_desc.current_barcodes = new Set();
+        const content_count = document.getElementById("content_count");
+
+        const repack_checkbox = document.getElementById("id_repack_box");
+        repack_checkbox.addEventListener("change", (event) => {
+            updateContentInfo();
+        });
+
+        function updateBoxInfo() {
+            const barcode = box_barcode.value;
+            $.getJSON("{% url "inventory.item.barcode_info" %}", {q: barcode}, function (data) {
+                if (data.results.length != 1) { return;}
+                box_desc.textContent = data.results[0].description;
+            });
+            $.getJSON("{% url "inventory.item.boxinfo" %}", {q: barcode}, function (data) {
+                if (data.results.length > 0) {
+                    content_desc.current_items = data.results;
+                    content_desc.current_barcodes = new Set(data.results.map((item) => item.barcode));
+                    updateContentInfo();
+                }
+            });
+        }
+        function updateContentInfo() {
+            const barcodes = content_barcodes.value;
+            const barcodes_array = barcodes.split("\n").filter((elem) => elem.trim() != "");
+            const lines = barcodes_array.length;
+            let unique_barcodes = new Set(barcodes_array);
+            if (!repack_checkbox.checked) {
+                unique_barcodes = unique_barcodes.difference(content_desc.current_barcodes);
+            }
+            const unique_items = unique_barcodes.size;
+            if (!repack_checkbox.checked) {
+                content_count.innerText = content_desc.current_items.length.toString() + "+" + unique_items.toString();
+            } else {
+                content_count.innerText = unique_items.toString();
+            }
+
+            $.getJSON("{% url "inventory.item.barcode_info" %}", {q: barcodes}, function (data) {
+                const text_items = data.results.map((elem, idx) => {
+                    if (elem == null) {
+                        return "<span class='text-danger'>(unknown item?)</span>"
+                    } else {
+                        if (barcodes_array.indexOf(elem.barcode) != idx ||
+                            (!repack_checkbox.checked && content_desc.current_barcodes.has(elem.barcode))) {
+                            return "<span class='text-secondary'>" + elem.description + "</span>"
+                        }
+                        if (elem.container_barcode != null && elem.container_barcode != box_barcode.value) {
+                            return "<span class='text-warning'>" + elem.description + "</span>"
+                        }
+                        return elem.description;
+                    }
+                })
+                const old_items = content_desc.current_items.map(elem => {
+                    return "<span class='text-info'>" + elem.description + "</span>"
+                });
+                if (repack_checkbox.checked) {
+                    content_desc.innerHTML = text_items.join("<br />");
+                } else {
+                    content_desc.innerHTML = (text_items.concat(old_items)).join("<br />");
+
+                }
+                if (content_barcodes.rows < lines+1) {
+                    content_barcodes.rows = lines+2;
+                }
+
+            });
+        }
+
+        if (box_barcode.value != "") {
+            updateBoxInfo();
+        }
+        if (content_barcodes.value != "") {
+            updateContentInfo();
+        }
+
+        box_barcode.addEventListener('keydown', (e) => {
+            if (e.key == 'Enter' || e.key == 'Tab') {
+                e.preventDefault();
+                content_barcodes.focus();
+                updateBoxInfo();
+            }
+        });
+        content_barcodes.addEventListener('keydown', (e) => {
+            if (e.key == 'Enter') {
+                updateContentInfo();
+            }
+        });
+
+    });
+</script>
+
+
+{% endblock %}

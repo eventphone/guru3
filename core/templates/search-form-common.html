@@ -1,5 +1,5 @@
 <div class="form-group">
-    <div class="input-group mb-3">
+    <div class="input-group {% if not show_decommissioned %}mb-3{% endif %}">
         <input type="text" class="form-control" name="q" id="searchString" sr-label="Search input" placeholder="{{placeholder}}" value="{{search_params.q}}" {{autofocus}}/>
         <input type="hidden" name="order" value="{{search_params.order}}" />
         <div class="input-group-append">
@@ -7,3 +7,9 @@
         </div>
     </div>
 </div>
+{% if show_decommissioned %}
+<div class="form-check mb-3">
+        <input type="checkbox" class="form-check-input" name="decommissioned" id="id_decommissioned" {% if search_params.decommissioned %}checked{% endif %} />
+        <label for="id_decommissioned" class="form-check-label">Show decommissioned items</label>
+</div>
+{% endif %}

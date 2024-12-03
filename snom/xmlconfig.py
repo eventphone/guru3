@@ -53,12 +53,13 @@ def zoneinfo_to_snom_tz(zone: ZoneInfo):
     return __zoneinfo_snom_dict.get(zone.key, "GER+1")
 
 
-def render_xml_config(snom_phone, inventory_item, inventory_lend, prov_url, event):
+def render_xml_config(snom_phone, inventory_item, inventory_lend, prov_url, firmware_url, event):
     context = {
         "snom_phone": snom_phone,
         "inventory_item": inventory_item,
         "inventory_lend": inventory_lend,
         "prov_url": prov_url,
+        "firmware_url": firmware_url,
         "timezone": zoneinfo_to_snom_tz(event.timezone)
     }
     template = get_template("snom/provisioning.xml")

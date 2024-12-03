@@ -1,0 +1,10 @@
+Hi {{username}},
+
+this email is sent to you in order to confirm that your newly registered email address is working.
+
+Please click on
+{{confirm_url}}
+to confirm this change. This activates the new mail address for our systems.
+
+Best Regards,
+    Your GURU3 system

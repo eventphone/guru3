@@ -57,6 +57,10 @@ def eventImportFunction(request, cls, pk):
                 "conflict": conflicts,
             })
 
+    groups = Extension.objects.filter(event=settings.PERMANENT_EVENT_ID, type="GROUP").order_by("extension")
+    for group in groups:
+        group.syncGroupToEvent(event)
+
     cls.add_context("results", results)
     cls.add_context("event", event)
     return cls.render_template()

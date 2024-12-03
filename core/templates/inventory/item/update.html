@@ -51,6 +51,16 @@
 
 {% crispy form form_helper %}
 
+{% if object and object.itemType.isContainer %}
+<h3>Current box content</h3>
+<ul>
+{% for item in object.containedItems.all %}
+    <li><a href="{% url "inventory.item.edit" pk=item.pk %}">{{item}}</a></li>
+{% endfor %}
+</ul>
+
+{% endif %}
+
 {% if object %}
 <h3>Rental history</h3>
 <table class="table table-striped">
@@ -81,7 +91,7 @@
 
 <script>
     $(document).ready(function() {
-        $("form input").keydown(function(event) {
+        $("form input").not("input[type='submit']").keydown(function(event) {
             if(event.keyCode == 13) {
                 event.preventDefault();
                 var all = $("form input");

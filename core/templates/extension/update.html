@@ -12,8 +12,9 @@
 <h1>Create new {% if form.fields.type.initial == "GROUP" %}callgroup{% else %}extension{% endif %}</h1>
 {% endif %}
 
-{% if object and object.type != "GROUP" %}
+{% if object %}
 <ul class="nav nav-pills mb-3">
+    {% if object.type != "GROUP" %}
     <li class="nav-item">
         <a class="nav-link active" href="#">Config</a>
     </li>
@@ -44,6 +45,12 @@
     </li>
     <li class="nav-item disabled mr-3">
         <a class="nav-link disabled" href="#">References</a>
+    </li>
+    {% endif %}
+    {% endif %}
+    {% if request.user.is_staff %}
+    <li class="nav-item ml-auto">
+        <a class="nav-link" href="{% url "extension.history" ext=object.extension %}">History</a>
     </li>
     {% endif %}
 </ul>
@@ -128,16 +135,17 @@
 }
 #div_id_twoGOptIn label:after {
     background-color: #28a745;
-    content: "Most stable";
+    content: "stable";
 }
 
 #div_id_threeGOptIn label:after {
     background-color: #ffc107;
     content: "Testing";
 }
+
 #div_id_fourGOptIn label:after {
-    background-color: #dc3545;
-    content: "Highly experimental";
+    background-color: #ffc107;
+    content: "Recommended for data"
 }
 </style>
 

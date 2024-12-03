@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'captcha',
     'channels',
     'wkhtmltopdf',
+    'fontawesomefree',
 ]
 CAPTCHA_CHALLENGE_FUNCT = 'captcha.helpers.math_challenge'
 

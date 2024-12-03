@@ -54,8 +54,9 @@ def provisioning(request, mac, admin=False):
     snom_phone.save()
 
     this_url = request.build_absolute_uri("/snom/prov/") + "{mac}"  # do not url encode {mac}
+    firmware_url = request.build_absolute_uri(f"/snom/firmware/{snom_phone.model}.xml")
 
-    provisioning_xml = snom_phone.get_xml_config(this_url)
+    provisioning_xml = snom_phone.get_xml_config(this_url, firmware_url)
     if provisioning_xml is None:
         raise Http404
     return HttpResponse(provisioning_xml, content_type="application/xml")

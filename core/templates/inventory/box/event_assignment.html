@@ -1,0 +1,48 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <h1>Assign boxes to events</h1>
+
+
+    {% crispy form form.form_helper %}
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const barcodes = document.getElementById('id_barcodes');
+            const barcodes_desc = document.getElementById("barcodes_description");
+
+            function updateBarcodesInfo() {
+                const barcodes_text = barcodes.value;
+                const lines = barcodes_text.split("\n").length;
+                $.getJSON("{% url "inventory.item.barcode_info" %}", {q: barcodes_text}, function (data) {
+                    const text_items = data.results.map((elem) => {
+                        if (elem == null) {
+                            return "<span class='text-danger'>(unknown item?)</span>"
+                        } else {
+                            return elem.description;
+                        }
+                    })
+                    barcodes_desc.innerHTML =  text_items.join("<br />");
+                    if (barcodes.rows < lines+1) {
+                        barcodes.rows = lines+2;
+                    }
+                });
+            }
+
+            if (barcodes.value != "") {
+                updateBarcodesInfo();
+            }
+
+            barcodes.addEventListener('keydown', (e) => {
+                if (e.key == 'Enter') {
+                    updateBarcodesInfo();
+                }
+            });
+
+        });
+    </script>
+
+
+{% endblock %}

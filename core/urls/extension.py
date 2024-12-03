@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.urls import path, re_path, reverse_lazy
 from django.views.generic import TemplateView
 
+from gcontrib.decorators import user_is_staff
 from gcontrib.views.detail import PermCheckFlexibleTemplateDetailView
 from gcontrib.views.edit import PermCheckDeleteView
 from gcontrib.views.list import SearchView
@@ -102,4 +103,15 @@ urlpatterns = [
              }
          )),
          name="extension.unused"),
+    path("history/<int:ext>",
+         user_is_staff(FlexibleTemplateView.as_view(
+             template_name="extension/history.html",
+             template_params={
+                 "extension": lambda _, param: param.get("ext"),
+                 "history_list": lambda _, param: Extension.objects.select_related("owner", "event")
+                                                                   .filter(extension=param.get("ext"))
+                                                                   .order_by("event__start")
+             }
+         )),
+         name="extension.history"),
 ]

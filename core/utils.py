@@ -3,6 +3,7 @@ import random
 import string
 import textwrap
 import time
+import itertools
 
 from django.conf import settings
 from django.db import OperationalError
@@ -43,13 +44,18 @@ def generateRandomPassword(length):
         string.ascii_uppercase +
         string.digits) for _ in range(length)])
 
-
 def generateRandomNumberToken(length):
     return "".join([random.SystemRandom().choice(string.digits) for _ in range(length)])
 
 
+def generate_register_token():
+    token_plain = "".join([random.SystemRandom().choice(
+        string.ascii_uppercase +
+        string.digits) for _ in range(10)])
+    return token_plain[0:5] + "-" + token_plain[5:]
+
 def mac_format(mac_str):
-    mac_str = mac_str.upper().replace(":", "")
+    mac_str = mac_str.upper().replace(":", "").replace("-", "")
     return ":".join(textwrap.wrap(mac_str, 2))
 
 
@@ -82,3 +88,11 @@ def retry_on_db_deadlock(max_retries=4, exponential_backoff=2, initial_backoff=0
 
 def task_url(task):
     return reverse("celery.taskstatus", kwargs={"taskid": task.id})
+
+def batched(iterable, n):
+    # batched('ABCDEFG', 3) → ABC DEF G
+    if n < 1:
+        raise ValueError('n must be at least one')
+    it = iter(iterable)
+    while batch := tuple(itertools.islice(it, n)):
+        yield batch

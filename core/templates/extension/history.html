@@ -1,0 +1,37 @@
+{% extends "master.html" %}
+{% block content %}
+<h1>Extension history for {{extension}}</h1>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">Event</th>
+      <th scope="col">Extension name</th>
+      <th scope="col">Owner</th>
+      <th scope="col">Action</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for object in history_list %}
+  <tr>
+      <td>{{object.event.name}}</td>
+      <td>{{object.name}}</td>
+      <td>{{object.owner.username}}</td>
+      <td>
+          <a href="{% url "extension.edit" pk=object.pk %}">
+            <span class="oi oi-phone" title="Show extension" aria-hidden="true"></span>
+          </a>
+          {% if object.owner %}
+          <a href="{% url "extension.user" pk=object.owner.pk %}">
+          <span class="oi oi-list" title="All extensions of this user" aria-hidden="true"></span>
+          </a>
+          <a href="{% url "user.edit" pk=object.owner.pk %}">
+          <span class="oi oi-person" title="User details" aria-hidden="true"></span>
+          </a>
+          {% endif %}
+      </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

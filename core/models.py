@@ -7,9 +7,10 @@ from functools import lru_cache
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.db import models, connection, transaction
-from django.db.models.functions import Length, Substr
+from django.db.models.functions import Length, Substr, Replace
 from django.db.models import Q, F, CharField, Prefetch, Value, DEFERRED
 from django.forms.models import model_to_dict
 from django.template.loader import get_template
@@ -23,7 +24,7 @@ from django.utils.translation import gettext_lazy as _
 from timezone_field import TimeZoneField
 
 from core import messaging, utils, inventory
-from core.utils import retry_on_db_deadlock
+from core.utils import retry_on_db_deadlock, generate_register_token
 
 # Permission bits we use for events and their extensions (for creation)
 from guru3.consumers import notify_clients
@@ -175,6 +176,11 @@ class Event(models.Model):
                                default="INVALID_KEY")
 
     timezone = TimeZoneField(default="Europe/Berlin", use_pytz=False, verbose_name=_("Timezone"))
+
+    gsm2G = models.BooleanField(verbose_name=_("2G"), default=True)
+    gsm3G = models.BooleanField(verbose_name=_("3G"), default=True)
+    gsm4G = models.BooleanField(verbose_name=_("4G"), default=True)
+    gsm5G = models.BooleanField(verbose_name=_("5G"), default=False)
 
     def regenerate_mgr_key(self):
         key = _generate_mgr_key()
@@ -514,7 +520,7 @@ EXTENSION_TYPES = (
 EXTENSION_TYPES_CONDITIONS = {
     "SIP": lambda event, user_perm: True,
     "DECT": lambda event, user_perm: event.hasDECT,
-    "GSM":lambda event, user_perm: event.hasGSM,
+    "GSM": lambda event, user_perm: event.hasGSM,
     "GROUP": lambda event, user_perm: user_perm & PERM_ADMIN != 0,
     "APP": lambda event, user_perm: user_perm & PERM_ADMIN != 0,
     "ANNOUNCEMENT": lambda  event, user_perm: True,
@@ -599,12 +605,12 @@ class Extension(models.Model):
     twoGOptIn = models.BooleanField(verbose_name=_("Use GSM/2G"), help_text=_("Use 2G mobile network. This is the most"
                                                                               " stable technology and recommended to be"
                                                                               " used."), default=True)
-    threeGOptIn = models.BooleanField(verbose_name=_("Use UMTS/3G"), help_text=_("Use 3G access access technology "
-                                                                                " (highly experimental). Voice"
-                                                                                " might not work."), default=True)
-    fourGOptIn = models.BooleanField(verbose_name=_("Use LTE/4G"), help_text=_("Use 4G access technology (very new, "
-                                                                               "even more experimental, your phone"
-                                                                               " will explode ;)"), default=False)
+    threeGOptIn = models.BooleanField(verbose_name=_("Use UMTS/3G"), help_text=_("Use 3G access access technology."),
+                                                                                 default=False)
+    fourGOptIn = models.BooleanField(verbose_name=_("Use LTE/4G"), help_text=_("Use 4G access technology. "
+                                                                               "Data service quite stable. "
+                                                                               "Voice service depend on your phone."),
+                                                                               default=True)
 
     # DECT handset
     handset = models.ForeignKey(DECTHandset, on_delete=models.SET_NULL, blank=True, null=True)
@@ -631,6 +637,16 @@ class Extension(models.Model):
     # ANNOUNCEMENT
     announcement_audio = models.ForeignKey(AudioFile, verbose_name=_("Announcement Audio"), on_delete=models.SET_NULL,
                                            blank=True, null=True, related_name="announcement_extensions")
+
+    # APPLICATION
+    direct_routing_target = models.CharField(max_length=256, blank=True, verbose_name=_("Yate direct routing target"),
+                                             help_text=_("Optional routing target that should be invoked by "
+                                                         "yate when calling this special number. Calls are routed to "
+                                                         "the application yate, then stage2 routing invokes this "
+                                                         "routing target. Format: <pre>\"&lt;target&gt;[&semi;&lt;"
+                                                         "param1&gt;=&lt;value1&gt&semi;&lt;param2&gt;=&lt;value2&gt;…]"
+                                                         "\"</pre> Leave empty if call routing is already handled, e.g."
+                                                         ", via regexroute."))
 
     # rental device
     requestedRentalDevice = models.ForeignKey('RentalDeviceClassification', on_delete=models.SET_NULL, blank=True,
@@ -676,26 +692,30 @@ class Extension(models.Model):
         "forward_extension",
         "forward_delay",
     }
+    # Type attributes take a fourth argument which is a function that takes the event and deduces from this whether
+    # or not this attribute is available
     type_attributues = {
         "SIP": [
-            ("isPremium", PERM_ORGA, PERM_ORGA),
+            ("isPremium", PERM_ORGA, PERM_ORGA, lambda _: True),
         ],
         "DECT": [
-            ("displayModus", PERM_USER, PERM_USER_READ),
-            ("useEncryption", PERM_USER, PERM_USER_READ),
-            ("handset", PERM_USER, PERM_USER_READ),
+            ("displayModus", PERM_USER, PERM_USER_READ, lambda _: True),
+            ("useEncryption", PERM_USER, PERM_USER_READ, lambda _: True),
+            ("handset", PERM_USER, PERM_USER_READ, lambda _: True),
         ],
         "GSM": [
-            ("twoGOptIn", PERM_USER, PERM_USER_READ),
-            ("threeGOptIn", PERM_USER, PERM_USER_READ),
-            ("fourGOptIn", PERM_USER, PERM_USER_READ),
+            ("twoGOptIn", PERM_USER, PERM_USER_READ, lambda event: event.gsm2G),
+            ("threeGOptIn", PERM_USER, PERM_USER_READ, lambda event: event.gsm3G),
+            ("fourGOptIn", PERM_USER, PERM_USER_READ, lambda event: event.gsm4G),
         ],
         "GROUP": [
-            ("group_shortcode", PERM_USER, PERM_USER_READ),
+            ("group_shortcode", PERM_USER, PERM_USER_READ, lambda _: True),
         ],
-        "APP": [],
+        "APP": [
+            ("direct_routing_target", PERM_ADMIN, PERM_ADMIN, lambda _: True),
+        ],
         "ANNOUNCEMENT": [
-            ("announcement_audio", PERM_USER, PERM_USER_READ),
+            ("announcement_audio", PERM_USER, PERM_USER_READ, lambda _: True),
         ],
         "SPECIAL": [],
     }
@@ -724,7 +744,7 @@ class Extension(models.Model):
                 return index
 
     @classmethod
-    def calculateFormFields(cls, perm):
+    def calculateFormFields(cls, perm, event=None):
         """Calculate form fields to be displayed depending on permissions
 
         Calculates all attributes that should be shown in a form depending on
@@ -734,10 +754,17 @@ class Extension(models.Model):
         of attributes that the user should only be able to read.
         """
         common = [(a[0], (a[1] & perm) != 0) for a in cls.common_attributes if (perm & (a[1] | a[2])) != 0]
-        types = {
-            t: [(a[0], (a[1] & perm) != 0) for a in cls.type_attributues[t] if (perm & (a[1] | a[2])) != 0]
-            for t in [type[0] for type in EXTENSION_TYPES]
-        }
+        if event is None:
+            types = {
+                t: [(a[0], (a[1] & perm) != 0) for a in cls.type_attributues[t] if (perm & (a[1] | a[2])) != 0]
+                for t in [type[0] for type in EXTENSION_TYPES]
+            }
+        else:
+            types = {
+                t: [(a[0], (a[1] & perm) != 0) for a in cls.type_attributues[t] if (perm & (a[1] | a[2])) != 0 and a[3](event)]
+                for t in [type[0] for type in EXTENSION_TYPES]
+            }
+
 
         commonFields = [c[0] for c in common]
         commonFieldsReadonly = [c[0] for c in common if c[1] == False]
@@ -810,7 +837,30 @@ class Extension(models.Model):
         copy._currentType = None
         copy.event = newEvent
         copy.save()
-        return copy
+
+    def syncGroupToEvent(self, newEvent):
+        with transaction.atomic():
+            admins = self.group_admins.all()
+            memberships = CallGroupInvite.objects.filter(group=self)
+            copy = Extension.objects.get(extension=self.extension, event=newEvent)
+            copy.group_admins.clear()
+            for admin in admins:
+                copy.group_admins.add(admin)
+
+            CallGroupInvite.objects.filter(group=copy).delete()
+            for member in memberships:
+                # we need to find the same extension in the new event here
+                new_event_ext = Extension.objects.get(extension=member.extension.extension, event=newEvent)
+                invite = CallGroupInvite(group=copy,
+                                         extension=new_event_ext,
+                                         inviter=member.inviter,
+                                         invite_reason=member.invite_reason,
+                                         accepted=member.accepted,
+                                         active=member.active,
+                                         delay_s=member.delay_s)
+                invite.save()
+
+            return copy
 
     def unsubscribe_device(self):
         unsubscribe_msg = messaging.UnsubscribeDeviceMsg(self).makeWireMessage()
@@ -1043,7 +1093,9 @@ class CallGroupInvite(models.Model):
     delay_s = models.PositiveIntegerField(default=0)
 
     def has_read_permission(self, user):
-        return self.group.has_read_permission(user)
+        # Make the invite only readable if it was accepted, belongs to this user or to group admins
+        return (self.accepted and self.group.has_read_permission(user)) or self.group.has_write_permission(user) \
+               or self.extension.has_write_permission(user)
 
     def has_write_permission(self, user):
         return self.extension.has_write_permission(user) or (self.group.event.isEventAdmin(user))
@@ -1072,6 +1124,20 @@ class CallGroupInvite(models.Model):
         super().delete(*args, **kwargs)
         update_msg = messaging.makeGroupUpdateMessage(self.group)
         update_msg.save()
+
+    @classmethod
+    def get_invites(cls, group, requesting_user, base_queryset=None):
+        if base_queryset is None:
+            base_queryset = cls.objects
+        if group.has_write_permission(requesting_user):
+            # this user is a group admin/extension owner and should see all invites
+            invites = base_queryset.filter(group=group)
+        else:
+            # this user should only see accepted members of the group an invites for their own account
+            invites = base_queryset.filter(Q(group=group) &
+                                           (Q(accepted=True) | Q(extension__owner=requesting_user)
+                                            | Q(extension__type="GROUP", extension__group_admins=requesting_user)))
+        return invites
 
 
 class RentalDeviceClassification(models.Model):
@@ -1107,6 +1173,7 @@ class InventoryType(models.Model):
                                                                     "if they are assigned to an extension"))
     classification = models.ForeignKey(RentalDeviceClassification, on_delete=models.SET_NULL, null=True, blank=True,
                                        verbose_name=_("Rental device class"))
+    isContainer = models.BooleanField(default=False, verbose_name=_("This item type is a container."))
 
     def __str__(self):
         return self.name
@@ -1121,6 +1188,24 @@ class InventoryItem(models.Model):
     serialNumber = models.CharField(max_length=64, blank=True, verbose_name=_("Serial number"))
     mac = models.CharField(max_length=64, blank=True, verbose_name=_("MAC address"))
     decommissioned = models.BooleanField(blank=True, verbose_name=_("This item is decommissioned"))
+    containedIn = models.ForeignKey('InventoryItem', on_delete=models.SET_NULL, null=True, blank=True,
+                                    verbose_name=_("Storage container"), related_name="containedItems",
+                                    limit_choices_to=Q(itemType__isContainer=True))
+    event = models.ForeignKey(Event, on_delete=models.SET_NULL, null=True, blank=True,
+                              verbose_name=_("The event that this item is currently used at."))
+
+    def __str__(self):
+        if self.description:
+            return f"{self.description} [{self.barcode}]"
+        else:
+            return f"{self.itemType.name} [{self.barcode}]"
+
+    def recursively_set_event(self, event):
+        self.event = event
+        self.save()
+        if self.itemType.isContainer:
+            for item in self.containedItems.all():
+                item.recursively_set_event(event)
 
     def getCurrentMagic(self):
         type = self.itemType
@@ -1151,12 +1236,14 @@ class InventoryItem(models.Model):
 
     @classmethod
     def search_items(cls, search):
-        return cls.objects.filter(Q(mac__icontains=search)
+        return cls.objects.annotate(mac_plain=Replace(Replace(F("mac"), Value(":")), Value(" ")))\
+                          .filter(Q(mac__icontains=search)
+                                  | Q(mac_plain__icontains=search)
                                   | Q(serialNumber__icontains=search)
                                   | Q(description__icontains=search)
                                   | Q(itemType__name__icontains=search)
                                   | Q(comments__icontains=search)
-                                  | Q(barcode__icontains=search)).filter(decommissioned=False)
+                                  | Q(barcode__icontains=search))
 
     def _evaluate_item_hooks(self, hook_type, lending=None):
         type_magic = self.itemType.magic
@@ -1177,6 +1264,7 @@ class InventoryItem(models.Model):
         return self._evaluate_item_hooks(inventory.InventoryHookType.ITEM_DISPLAY)
 
     def hook_hand_out(self, lending):
+        InventoryItem.objects.filter(id=self.id).update(containedIn=None)
         return self._evaluate_item_hooks(inventory.InventoryHookType.ITEM_HAND_OUT, lending)
 
     def hook_return(self, lending):
@@ -1186,10 +1274,23 @@ class InventoryItem(models.Model):
         self._evaluate_item_hooks(inventory.InventoryHookType.ITEM_SAVE)
         super().save(*args, **kwargs)
 
+    def clean(self):
+        if self.containedIn == self:
+            raise ValidationError(_("An object cannot be contained in itself."))
+
+    def json_info(self):
+        return {
+            "id": self.id,
+            "description": self.description if self.description else self.itemType.name,
+            "barcode": self.barcode,
+            "containedIn": str(self.containedIn) if self.containedIn is not None else None,
+            "container_barcode": self.containedIn.barcode if self.containedIn is not None else None,
+        }
+
 
 class InventoryLend(ModelAsJsonMixin, models.Model):
     item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, verbose_name=_("Item"))
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name=_("Event"))
+    event = models.ForeignKey(Event, on_delete=models.PROTECT, verbose_name=_("Event"))
     extension = models.ForeignKey(Extension, blank=True, null=True, on_delete=models.SET_NULL,
                                   verbose_name=_("Linked Extension"))
     outDate = models.DateTimeField(auto_now_add=True, verbose_name=_("Lending start"))
@@ -1292,3 +1393,21 @@ class DECTInventorySuggestion(models.Model):
     item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, verbose_name=_("Inventory item"))
     extension = models.ForeignKey(Extension, on_delete=models.CASCADE, verbose_name=_("Extension used in rent"))
     handset = models.ForeignKey(DECTHandset, on_delete=models.CASCADE, verbose_name=_("Handset"))
+
+
+class RegistrationEmailToken(models.Model):
+    token = models.CharField(max_length=64, verbose_name=_("Registration Token"))
+    confirmed = models.BooleanField(default=False, verbose_name=_("Token was confirmed"))
+    created = models.DateTimeField(auto_now_add=True, editable=False)
+
+    @classmethod
+    def new_token(cls):
+        token = cls(token=generate_register_token())
+        token.save()
+        return token
+
+
+class InventoryItemRecallStatus(models.Model):
+    lending = models.ForeignKey(InventoryLend, verbose_name=_("Lending"), on_delete=models.CASCADE)
+    call_attempt = models.PositiveIntegerField(verbose_name=_("Current call attempt"), default=0)
+    next_escalation = models.DateTimeField(verbose_name=_("Time this extension is next called"))

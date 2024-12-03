@@ -1,12 +1,20 @@
 import logging
 import base64
+from datetime import timedelta
+
+
 from dal import autocomplete
+from django.core.mail import send_mail
+from django.core.signing import TimestampSigner, BadSignature, SignatureExpired
 from django.conf import settings
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.models import User
 from django.db.models import Q
 from django.db import transaction
 from django.shortcuts import redirect
+from django.template.loader import get_template
+from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
 from django.views.decorators.http import require_http_methods
@@ -54,13 +62,68 @@ def send_reset_password_link(request, pk):
     return redirect("user.list")
 
 
+@require_http_methods(["GET"])
+def confirm_new_mail(request, signed_data):
+    response_template_name = "user/confirm_email_change_clicked.html"
+    signer = TimestampSigner()
+    try:
+        user_pk, email = signer.unsign_object(signed_data, max_age=timedelta(hours=24))
+        user = User.objects.get(pk=user_pk)
+        user.email = email
+        user.save()
+
+        success_context = {
+            "success": True,
+            "user": user
+        }
+        return TemplateResponse(request, response_template_name, success_context)
+    except SignatureExpired:
+        failure_reason = "Confirmation link expired. Please re-trigger email change to get a new link"
+    except BadSignature:
+        failure_reason = "Invalid confirmation link. Did you copy all content correctly?"
+    except User.DoesNotExist:
+        failure_reason = "This user doesn't exist anymore."
+
+    fail_context = {
+        "success": False,
+        "failure_reason": failure_reason
+    }
+    return TemplateResponse(request, response_template_name, fail_context)
+
+
 class UserProfileView(CrispyUpdateView):
     form_class = UserProfileForm
     form_helper = defaultLayout(UserProfileForm, _("Save"))
 
+    email_change_mail_subject = "Confirm your new email address"
+    email_change_mail_template = "user/confirm_email_change_mail.txt"
+    email_change_response_template = "user/confirm_email_change.html"
+
     # we get the user from the current session, not from some database
     def get_object(self, **kwargs):
         return self.request.user
+
+    def send_mail_change_confirm_email(self, user, new_email):
+        email_template = get_template(self.email_change_mail_template)
+        signer = TimestampSigner()
+        confirm_data = signer.sign_object((user.pk, new_email))
+        confirm_url = settings.INSTALLATION_BASE_URL + reverse("user.confirm_new_mail", kwargs={"signed_data": confirm_data})
+        email_content = email_template.render({
+            "username": user.username,
+            "confirm_url": confirm_url,
+        })
+        send_mail(self.email_change_mail_subject, email_content, settings.DEFAULT_FROM_EMAIL, [new_email])
+
+    def form_valid(self, form):
+        # if the email address has changed, we want this to be confirmed via mail
+        if "email" in form.changed_data:
+            new_mail = form.cleaned_data["email"]
+            form.instance.email = form.initial["email"]
+            # save all other fields but ignore redirection response
+            super().form_valid(form)
+            self.send_mail_change_confirm_email(form.instance, new_mail)
+            return TemplateResponse(self.request, self.email_change_response_template, {"new_mail": new_mail})
+        return super().form_valid(form)
 
 
 def userSearch(query, request):
@@ -110,8 +173,12 @@ class InvoiceView(CurrentEventMixin, PDFTemplateView):
         devices = self.InvoiceLine('rental devices', 42.23)
         query = Extension.objects.filter(owner=self.user).filter(event=event).order_by('extension')
 
+        is_pl = False
+
         for e in query:
             name = '{} {} ({})'.format(e.extension, e.name, e.location)
+            if e.extension == '1000':
+                is_pl = True
             extensions.items.append(name)
             if (len(e.extension) <= 3):
                 short_extensions.items.append(name)
@@ -150,6 +217,33 @@ class InvoiceView(CurrentEventMixin, PDFTemplateView):
         self.invoiceLines.append(callgroups)
         self.invoiceLines.append(ringback_tones)
         self.invoiceLines.append(devices)
+
+        if is_pl:
+            query = Extension.objects.filter(event=event)
+            sponsoring = 0.0
+            for e in query:
+                sponsoring += extensions.price
+                if (len(e.extension) <= 3):
+                    sponsoring += short_extensions.price
+                if ((e.extension >= event.orgaExtensionStart) & (e.extension <= event.orgaExtensionEnd)):
+                    sponsoring += orga_extensions.price
+                if (e.isPremium):
+                    sponsoring += premium_extensions.price
+                if (len(set(e.extension)) == 1):
+                    sponsoring += single_digit_extensions.price
+                if (e.extension in ['1234', '2345', '3456', '4567', '5678', '6789', '7890','4321', '5432', '6543', '7654', '8765', '9876']):
+                    sponsoring += increasing_extensions.price
+                if (('23' in e.extension) | ('42' in e.extension)):
+                    sponsoring += nerd_extensions.price
+                if (all(int(e.extension)%i for i in islice(count(2), int(sqrt(int(e.extension))-1)))):
+                    sponsoring += prime_extensions.price
+                if (e.type == 'GROUP'):
+                    sponsoring += callgroups.price
+                if (e.ringback_tone is not None):
+                    sponsoring += ringback_tones.price
+            sponsoring_line = self.InvoiceLine('PL sponsoring', sponsoring)
+            sponsoring_line.items.append('')
+            self.invoiceLines.append(sponsoring_line)
 
         if settings.C3POST_TRACKING_URL is not None and encode is not None and event.start is not None:
             trackingurl = settings.C3POST_TRACKING_URL.format(event.id, event.start.year, self.user.id)

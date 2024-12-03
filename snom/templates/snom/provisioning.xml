@@ -12,7 +12,8 @@
         <language perm="RW">Deutsch</language>
         {% endif %}
         <setting_server perm="RW">{{prov_url}}</setting_server>
-        <update_policy perm="R">auto_update</update_policy>
+        <update_policy perm="R">{% if snom_phone.no_firmware_update %}settings_only{% else %}auto_update{% endif %}</update_policy>
+        <firmware_status perm="R">{{ firmware_url }}</firmware_status>
         <http_user perm="R">eventphone</http_user>
         <http_pass perm="R">{{snom_phone.httpServerPassword}}</http_pass>
         <admin_mode_password perm="R">{{snom_phone.adminPassword}}</admin_mode_password>

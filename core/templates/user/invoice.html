@@ -97,7 +97,8 @@
         border-right-style: none;
     }
     table.positions td:nth-child(3), table.positions td:nth-child(4), table.positions td:nth-child(5) {
-        text-align: right
+        text-align: right;
+        border-right: #ccc solid 1px;
     }
     tr.total > td {
         border-bottom-style: none;
@@ -202,8 +203,8 @@
         <td><div style="height: 2ex;">{{line.description}}</div></td>
         <td>{{line.items|first}}</td>
         <td>{{line.items|length}}</td>
-        <td>{{line.price|floatformat:2}}&nbsp;€</td>
-        <td>{{line.total|floatformat:2}}&nbsp;€</td>
+        <td>{{line.price|floatformat:"2g"}}&nbsp;€</td>
+        <td>{{line.total|floatformat:"2g"}}&nbsp;€</td>
     </tr>
     {% for item in line.items|slice:"1:" %}
     <tr>
@@ -225,15 +226,15 @@
     {% endfor %}
     <tr class="total">
         <td colspan="4">Subtotal:</td>
-        <td>{{view.net|floatformat:2}} €</td>
+        <td>{{view.net|floatformat:"2g"}} €</td>
     </tr>
     <tr class="total">
         <td colspan="4">Chaos&nbsp;Tax&nbsp;(23%):</td>
-        <td>{{view.vat|floatformat:2}} €</td>
+        <td>{{view.vat|floatformat:"2g"}} €</td>
     </tr>
     <tr class="total bold">
         <td colspan="4">Received&nbsp;payment&nbsp;(PL&nbsp;sponsoring):</td>
-        <td>{{view.gross|floatformat:2}} €</td>
+        <td>{{view.gross|floatformat:"2g"}} €</td>
     </tr>
     <tr class="total">
         <td colspan="4">Total&nbsp;due:</td>

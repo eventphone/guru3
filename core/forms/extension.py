@@ -70,13 +70,13 @@ class ExtensionField(forms.Field):
             return value
 
 
-def generateExtensionForm(permissions, quick_create=False, field_filter=None, read_only=False, form_types=None):
+def generateExtensionForm(permissions, quick_create=False, field_filter=None, read_only=False, form_types=None, event=None):
     """Generate a form object to handle extensions
 
     If the given type is none, a form that will contain all possible fields for all
 
     """
-    (commonFields, typeFields, readOnly) = Extension.calculateFormFields(permissions)
+    (commonFields, typeFields, readOnly) = Extension.calculateFormFields(permissions, event)
 
     commonFields.append("next_url")
     flatFields = list(commonFields)
@@ -286,15 +286,16 @@ def generateExtensionForm(permissions, quick_create=False, field_filter=None, re
                 ext = utils.extension_normalize(ext)
 
                 # Check if the user is allowed to create this..
+                current_ext = self.instance.extension if self.instance is not None else None
                 try:
-                    self.event.userIsAllowedToCreateExtension(self.user, ext, throw=True, perms=self.perms, current_ext=self["extension"].initial)
+                    self.event.userIsAllowedToCreateExtension(self.user, ext, throw=True, perms=self.perms, current_ext=current_ext)
                 except ExtensionNotAllowedException as e:
                     self.add_error("extension",
                                    ValidationError(_(
                                        "You are not allowed to take this extension:  ") + str(e.args[0]),
                                                    code="extension-not-permitted"))
                 # now check if it is available
-                if not self.event.checkIfExtensionIsFree(ext, current_ext=self["extension"].initial):
+                if not self.event.checkIfExtensionIsFree(ext, current_ext=current_ext):
                     self.add_error("extension",
                                    ValidationError(_("Extension already taken. Try our random button."),
                                                    code="extension-taken"))

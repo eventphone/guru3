@@ -18,6 +18,7 @@
   <thead><tr>
     <th>Name</th>
     <th>Classification</th>
+    <th>Inventory count</th>
     <th>Magic</th>
     <th>Actions</th>
   </tr></thead>
@@ -26,6 +27,7 @@
   <tr>
     <td>{{object.name}}</td>
     <td>{{object.classification.name}}</td>
+    <td>{{object.count}}</td>
     <td>{{object.magic}}</td>
     <td>
       <a href="{% url "inventory.type.edit" pk=object.pk %}"><span class="oi oi-pencil" title="Edit" aria-hidden="true"></span></a>

@@ -7,13 +7,15 @@ from gcontrib.decorators import user_is_staff
 from gcontrib.views.edit import CrispyCreateView, CrispyUpdateView
 from gcontrib.views.task import CSVExportView
 from gcontrib.views.list import JsonListView
+from gcontrib.views.meta import FlexibleTemplateView
 from gcontrib.crispy_forms import defaultLayout
 from core.decorators import user_is_current_event_admin
-from core.models import InventoryItem, InventoryLend
+from core.models import InventoryItem, InventoryLend, InventoryType
 from core.forms.inventory import InventoryItemForm
 from core.views.inventory import (InventoryLendingView, InventoryReturnView, InventoryLendEditView, InventoryListView,
                                   InventoryLendListView, inventorySearch, lentInventorySearch, InventoryEditView,
-                                  lentCSV, itemCSV, rental_recall_transform)
+                                  lentCSV, itemCSV, rental_recall_transform, inventory_item_info,
+                                  currentEventInventorySearch, event_available_item_types, box_content_info)
 
 urlpatterns = [
     path("new",
@@ -47,6 +49,20 @@ urlpatterns = [
              template_name="inventory/item/list.html",
          )),
          name="inventory.item.list"),
+    path("event_list",
+         user_is_current_event_admin(InventoryListView.as_view(
+             search_function=currentEventInventorySearch,
+             template_name="inventory/item/list.html",
+         )),
+         name="inventory.item.event_list"),
+    path("event_available",
+         user_is_current_event_admin(FlexibleTemplateView.as_view(
+             template_params={
+                "item_types": event_available_item_types,
+             },
+             template_name="inventory/item/event_available.html",
+         )),
+         name="inventory.item.event_available"),
     path("list+csv",
          user_is_current_event_admin(CSVExportView.as_view(
              csv_function=itemCSV,
@@ -96,5 +112,11 @@ urlpatterns = [
              object_transform = rental_recall_transform,
          )),
          name="inventory.item.recall"),
-
+    path("api/barcodes_info_json",
+         user_is_current_event_admin(inventory_item_info),
+         name="inventory.item.barcode_info"
+    ),
+    path("api/boxinfo",
+         user_is_current_event_admin(box_content_info),
+         name="inventory.item.boxinfo")
 ]

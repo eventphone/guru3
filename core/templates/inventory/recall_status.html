@@ -1,0 +1,74 @@
+{% extends "master.html" %}
+
+{% block content %}
+{% include "inventory/item/inventory-nav.html" with view="recall" %}
+<h1>Recall status of open rental devices</h1>
+<form method="POST" id="recall-form" action="{% url "inventory.do_recall" %}">
+{% csrf_token %}
+<button type="submit" id="submit-send" class="btn btn-warning float-right mb-2">
+    <span id="btn-icon" style="display: inline-block;">&#8630;</span> <span id="btn-text">Start recall</span>
+</button>
+</form>
+
+<table class="table table-striped">
+    <thead><tr>
+        <th>Extension</th>
+        <th>Device</th>
+        <th>Call attempt</th>
+        <th>Next escalation at</th>
+    </tr></thead>
+    <tbody>
+    {% for object in objects_list %}
+    <tr>
+        <td>{{object.lending.extension.extension}}</td>
+        <td>{{object.lending.item.description}}</td>
+        <td>{{object.call_attempt}}</td>
+        <td>{{object.next_escalation|time:"H:i:s"}}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+<script>
+    var check_timer = null;
+    $(document).ready(function () {
+        $("#recall-form").on("submit", function (event) {
+            event.preventDefault();
+
+            var form = $(this);
+            var post_url = form.attr("action");
+            $.ajax({
+                url: post_url,
+                type: "POST",
+                data: form.serialize(),
+            })
+            .done(function(data, textStatus, xhr) {
+                $("#submit-send").attr("disabled", true);
+                $("#btn-icon").addClass("icon-spin");
+                $("#btn-text").html("Pending...");
+                check_timer = setInterval(function() { check_task_results(data["task_url"], data["next_view"]); }, 1000);
+            })
+            .fail(function(data, textStatus, xhr) {
+                alert("An error occured: " + textStatus);
+            });
+
+        });
+    });
+
+    function check_task_results(task_url, success_url) {
+        $.getJSON(task_url, function(data) {
+            if (data["status"] == "SUCCESS") {
+                document.location.href = success_url;
+            } else if (data["status"] == "FAILURE") {
+                clearTimeout(check_timer);
+                $("#submit-send").html("Error :(");
+                if (data.hasOwnProperty("info")) {
+                    var info = data["info"];
+                    $("#atom-form").append($("<p class='text-danger'>" + info + "</p>"));
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

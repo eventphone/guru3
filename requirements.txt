@@ -2,8 +2,8 @@ channels==3.0.*
 celery[redis]==5.3.*
 crispy-bootstrap4
 daphne>=2.4.1
-django==4.0.*
-django-autocomplete-light>=3.9.0rc1
+django==4.2.*
+django-autocomplete-light<3.10 # remove this when updating to django 4.2
 django-crispy-forms
 django-registration==3.*
 django-simple-captcha
@@ -18,3 +18,5 @@ pytz==2021.1
 redis
 names
 netaddr
+aiosmtpd
+fontawesomefree

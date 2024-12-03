@@ -1,8 +1,9 @@
 from django.contrib import admin
-from core.models import Event, AudioFile, InventoryItem, InventoryType
+from core.models import Event, AudioFile, InventoryItem, InventoryType, InventoryItemRecallStatus
 from core.models import Extension, DECTHandset, ExtensionClaim, DECTManufacturer, DECTInventorySuggestion
 from core.models import WireMessage, UserApiKey, IncomingWireMessage
 from core.models import CallGroupInvite
+from core.models import RegistrationEmailToken
 
 
 class OrgaInline(admin.TabularInline):
@@ -101,3 +102,5 @@ admin.site.register(InventoryItem, InventoryItemAdmin)
 admin.site.register(InventoryType)
 admin.site.register(DECTManufacturer)
 admin.site.register(DECTInventorySuggestion)
+admin.site.register(RegistrationEmailToken)
+admin.site.register(InventoryItemRecallStatus)

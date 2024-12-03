@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils.functional import cached_property
+from django.template.response import TemplateResponse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 from django.views.generic import UpdateView, CreateView, FormView
@@ -41,7 +42,7 @@ class ExtensionViewMixin(FormViewPresaveHookMixin):
 
     def get_form(self, form_class=None):
         event = self.get_event()
-        form_class = generateExtensionForm(self.perms)
+        form_class = generateExtensionForm(self.perms, event=self.get_event())
         form_kwargs = self.get_form_kwargs()
         return form_class(**form_kwargs)
 
@@ -90,6 +91,15 @@ class ExtensionUpdateView(ExtensionViewMixin, ObjectPermCheckMixin, UpdateView):
 
 class ExtensionCreateView(ExtensionViewMixin, CurrentEventMixin, CreateView):
     model = Extension
+
+    def get(self, request, *args, **kwargs):
+        # As a special case we need to check if someone tried to open an extension claim
+        # that does not match the currently logged-in account and provide a more user-friendly response
+        try:
+            claim = self.claim
+            return super().get(request, *args, **kwargs)
+        except PermissionDenied:
+            return TemplateResponse(request, "extension/claim_other.html", {})
 
     @cached_property
     def claim(self):

@@ -1,0 +1,13 @@
+{% extends "master.html" %}
+{% block content %}
+<h1>Email change requires confirmation</h1>
+<p>
+    Your new email address {{new_mail}} needs to be confirmed before it will be activated in our systems. We sent you a
+    mail with an activation link for this purpose to this mail address. This link will be active for 24h.
+</p>
+<p>
+    Please note that your new email will only become visible in our systems (and your profile) once you clicked on the
+    activation link. If you don't receive a mail, you can trigger resending the activation link by changing your mail
+    in the profile form again.
+</p>
+{% endblock %}

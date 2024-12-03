@@ -174,7 +174,14 @@ class AnnouncementUpdateMsg(ExtensionUpdateMsg):
     def __init__(self, extension, no_forwards=False):
         super().__init__(extension, no_forwards)
         self.data["type"] = "ANNOUNCEMENT"
-        self.data["announcement_audio"] = extension.announcement_audio.sha512
+        self.data["announcement_audio"] = extension.announcement_audio.sha512 if extension.announcement_audio else ""
+
+
+class ApplicationUpdateMsg(ExtensionUpdateMsg):
+    def __init__(self, extension, no_forwards=False):
+        super().__init__(extension, no_forwards)
+        self.data["type"] = "APP"
+        self.data["direct_routing_target"] = extension.direct_routing_target
 
 
 class GroupUpdateMsg(ExtensionUpdateMsg):
@@ -217,13 +224,22 @@ class UnsubscribeDeviceMsg(BaseMessage):
         self.data["extension"] = extension.extension
 
 
+class CallExtensionMsg(BaseMessage):
+    def __init__(self, caller_number: str, caller_name: str, called: 'models.Extension', audio_hash: str):
+        super().__init__(called.event, "CALL_EXTENSION", timezone.now())
+        self.data["number"] = called.extension
+        self.data["caller_number"] = caller_number
+        self.data["caller_name"] = caller_name
+        self.data["announcement_audio"] = audio_hash
+
+
 msg_factory_table = {
     "SIP": SIPUpdateMsg,
     "DECT": DECTUpdateMsg,
     "GSM": GSMUpdateMsg,
     "GROUP": GroupUpdateMsg,
     "SPECIAL": TypeOnlyUpdateMsg,
-    "APP": TypeOnlyUpdateMsg,
+    "APP": ApplicationUpdateMsg,
     "ANNOUNCEMENT": AnnouncementUpdateMsg,
 }
 

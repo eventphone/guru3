@@ -9,7 +9,41 @@
     Please correct your inputs!
 </div>
 {% endif %}
+<h4>Item info</h4>
+{{ object.item.description }} [{{ object.item.barcode }}] currently lend to {{ object.lender }}
+{% if object.extension %}
+    <br />
+    Linked to {{ object.extension.extension }} ({{ object.extension.name }}).
+{% endif %}
+
+<h4 class="mt-2">Return</h4>
 
 {% crispy form form_helper %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const box_barcode = document.getElementById('id_box_barcode');
+            const box_desc = document.getElementById("box_description");
+
+            function updateBoxInfo() {
+                const barcode = box_barcode.value;
+                $.getJSON("{% url "inventory.item.barcode_info" %}", {q: barcode}, function (data) {
+                    if (data.results.length != 1) { return;}
+                    box_desc.textContent = data.results[0].description;
+                });
+            }
+
+            if (box_barcode.value != "") {
+                updateBoxInfo();
+            }
+
+            box_barcode.addEventListener('keydown', (e) => {
+                if (e.key == 'Enter' || e.key == 'Tab') {
+                    updateBoxInfo();
+                }
+            });
+            box_barcode.focus();
+        });
+    </script>
 
 {% endblock %}

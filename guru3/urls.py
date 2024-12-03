@@ -4,10 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.urls import path, re_path, include, reverse_lazy, register_converter
 from django.views.generic import RedirectView
 from django.views.static import serve
-from django_registration.backends.activation.views import RegistrationView
 from core.forms.auth import RegistrationFormUniqueEmailWithProfile, GuruAuthenticationForm
 from core.converters import LegacyHostingConverter, legacyPath
 from core.views.common import SupportView
+from core.views.registration import RegistrationViewWithRequest
 
 register_converter(LegacyHostingConverter, 'ext')
 
@@ -33,11 +33,11 @@ urlpatterns = [
      path('snom/', include('snom.urls')),
      path('epddi/', include('epddi.urls')),
      path('inventory/', include('core.urls.inventory')),
-     legacyPath('register.<ext:ext>', RegistrationView.as_view(
+     legacyPath('register.<ext:ext>', RegistrationViewWithRequest.as_view(
         form_class = RegistrationFormUniqueEmailWithProfile,
     ),
          name = "user.register"),
-     path('register', RegistrationView.as_view(
+     path('register', RegistrationViewWithRequest.as_view(
         form_class = RegistrationFormUniqueEmailWithProfile,
     ),
          name = "user.register"),

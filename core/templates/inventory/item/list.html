@@ -2,7 +2,11 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-{% include "inventory/item/inventory-nav.html" with view="inventory" %}
+{% if request.resolver_match.view_name == "inventory.item.list" %}
+    {% include "inventory/item/inventory-nav.html" with view="inventory" %}
+{% else %}
+    {% include "inventory/item/inventory-nav.html" with view="event_inventory" %}
+{% endif %}
 
 <h1>Inventory</h1>
 {% if request.user.is_staff %}
@@ -25,12 +29,22 @@
     <a class="nav-link" href="{% url "inventory.item.list.csv" %}"><span class="oi oi-data-transfer-download"></span> Download inventory CSV</a>
   </li>
 </ul>
+<ul class="nav justify-content-end mb-2">
+  <li class="nax-item>">
+    <a class="nav-link" href="{% url "inventory.box.pack" %}"><i class="fa-solid fa-boxes-packing"></i> Pack box</a>
+  </li>
+  {% if request.user.is_staff %}
+      <li class="nax-item>">
+          <a class="nav-link" href="{% url "inventory.box.assign_event" %}"><i class="fa-solid fa-truck-fast"></i> Event item management</a>
+      </li>
+  {% endif %}
+</ul>
 
 <hr/>
 {% crispy form form.get_form_helper %}
 <hr/>
 <div>
-{% include "search-form.html" with placeholder="Descriptions, serial numbers, MACs ..." %}
+{% include "search-form.html" with placeholder="Descriptions, serial numbers, MACs ..." show_decommissioned=True %}
 </div>
 <p class="text-info">
   {{paginator.count}} items found.
@@ -39,7 +53,7 @@
   <thead><tr>
     {% include "table-sort-header.html" with description="Type" key="type" %}
     {% include "table-sort-header.html" with description="Description" key="description" %}
-    {% include "table-sort-header.html" with description="Serial number" key="serialNumber" %}
+    {% include "table-sort-header.html" with description="Box" key="containedIn" %}
     {% include "table-sort-header.html" with description="Barcode" key="barcode" %}
     <th>Status</th>
     <th>Actions</th>
@@ -49,7 +63,7 @@
   <tr>
     <td>{{object.itemType.name}}</td>
     <td>{{object.description}}</td>
-    <td>{{object.serialNumber}}</td>
+    <td>{% if object.containedIn is not None %}{{object.containedIn}}{% endif %}</td>
     <td>{{object.barcode}}</td>
     <td>
       {% if object.isCurrentlyOnStock %}

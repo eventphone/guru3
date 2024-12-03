@@ -3,8 +3,16 @@ from typing import Optional
 
 from django.core import signing
 
-from core.models import Event
+from core.models import Event, RegistrationEmailToken
 
+def get_register_token(request):
+    token = request.session.get("register_token", None)
+    if token is None:
+        token = RegistrationEmailToken.new_token()
+        request.session["register_token"] = token.pk
+    else:
+        token = RegistrationEmailToken.objects.get(pk=token)
+    return token
 
 def sign_current_url(request):
     data = {

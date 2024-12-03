@@ -1,0 +1,28 @@
+{% extends "master.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+{% include "inventory/item/inventory-nav.html" with view="event_available" %}
+
+<h1>Event inventory overview</h1>
+
+<table class="table mt-4">
+    <thead>
+        <tr>
+          <th scope="col">Item type</th>
+          <th scope="col">Event total</th>
+          <th scope="col">Event available</th>
+        </tr>
+  </thead>
+  <tbody>
+        {% for item_type in item_types %}
+        <tr>
+            <td>{{ item_type.itemType__name }}</td>
+            <td>{{ item_type.event_total }}</td>
+            <td>{{ item_type.event_available }}</td>
+        </tr>
+        {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

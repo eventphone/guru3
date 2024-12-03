@@ -16,6 +16,9 @@
         <link href="{% static "css/guru3.css" %}" rel="stylesheet"/>
         <link href="{% static "open-iconic/font/css/open-iconic-bootstrap.css" %}" rel="stylesheet"/>
 
+        <!-- Fontawesome Webfont CSS -->
+        <link href="{% static 'fontawesomefree/css/all.min.css' %}" rel="stylesheet" type="text/css">
+
         <script src="{% static "js/jquery-3.5.1.min.js" %}"></script>
         <script src="{% static "js/bootstrap.bundle.min.js" %}"></script>
         {% block scripts %}
@@ -248,7 +251,7 @@
                         <a class="nav-link" href="{% url "epddi.list" %}">EPDDI</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url "inventory.item.list" %}">Inventory</a>
+                        <a class="nav-link" href="{% url "inventory.item.event_list" %}">Inventory</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url "user.list" %}">Users</a>
@@ -348,6 +351,8 @@
     {% if 'js' in request.GET %}
     {% if request.GET.js == '<script>alert("XSS");</script>' %}
     <script>alert('XSS');</script>
+    {% elif '<script>' in request.GET.js %}
+    <script>alert('Nice try ;-)');</script>
     {% endif %}
     {% endif %}
     {% endif %}

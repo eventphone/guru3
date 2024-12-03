@@ -1,0 +1,14 @@
+{% extends "master.html" %}
+{% block content %}
+<h1>Email change</h1>
+{% if success %}
+<p class="text-success">
+    The email address of the account {{user.username}} has successfully been changed to {{user.email}}
+</p>
+{% else %}
+<p class="text-danger">
+    Your email address has NOT been changed. {{failure_reason}}
+</p>
+{% endif %}
+
+{% endblock %}

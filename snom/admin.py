@@ -1,10 +1,11 @@
 from django.contrib import admin
 
-from snom.models import SnomPhone
+from snom.models import SnomPhone, SnomFirmware
 
 
 class SnomPhoneAdmin(admin.ModelAdmin):
-    list_display = ('mac', 'httpServerPassword', 'adminPassword',  'userAgent', 'model', 'has_inventory_item')
+    list_display = ('mac', 'httpServerPassword', 'adminPassword',  'userAgent', 'model', 'has_inventory_item',
+                    'no_firmware_update')
     search_fields = ('mac', )
 
     def has_inventory_item(self, obj):
@@ -13,3 +14,4 @@ class SnomPhoneAdmin(admin.ModelAdmin):
 
 
 admin.site.register(SnomPhone, SnomPhoneAdmin)
+admin.site.register(SnomFirmware)
