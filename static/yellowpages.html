@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phone Directory</title>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    />
+    <style type="text/css">
+      body {
+        margin: 0;
+        background-image: url('/static/assets/background.jpg'); /* CC-BY-SA 3.0 Museumsstiftung Post und Telekommunikation */
+      }
+      .container {
+        padding: 1rem;
+      }
+      .container {
+        column-width: 14em;
+        column-fill: balance;
+      }
+      .entry-extension {
+        color: black;
+        text-decoration: none;
+        order: 4;
+      }
+      .entry {
+        display: flex;
+      }
+      .entry .oi {
+        display: none;
+        order: 1;
+      }
+      .entry-name {
+        font-weight: bold;
+      }
+      .entry.ad {
+        border: 0.2rem solid black;
+        padding: 1rem;
+        flex-wrap: wrap;
+      }
+      .entry.ad .oi {
+        display: inline-block;
+        width: 100%;
+      }
+      .entry.ad .entry-text {
+        width: 100%;
+        padding: 1ex 0 0.5ex 0;
+      }
+      .entry-text {
+        order: 2;
+      }
+
+      .entry:after {
+        content: '';
+        border-bottom: dotted;
+        flex-grow: 1;
+        order: 3;
+        margin: 0.5rem;
+      }
+      .entry.ad:after {
+        content: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="entries"></div>
+    <p id="watch_end_of_document"></p>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+      var elementsLoaded = 0; // Number of elements loaded
+      const urlParams = new URLSearchParams(window.location.search);
+
+      var elementsPerPage = 100; // Number of elements to load per page
+      if (urlParams.has('n')) {
+        elementsPerPage = parseInt(urlParams.get('n'));
+      }
+
+      let phoneBook = [];
+      //https://guru3.eventphone.de/event.exe/gelbeseiten.json
+      $.getJSON('/event.exe/gelbeseiten.json', function (data) {
+        phoneBook = data;
+        loadMoreElements();
+      });
+      // Load phone data from JSON
+      let loading = false;
+      let filtered = false;
+      function newEntry(name, location, tel) {
+        return (
+          '<div class="entry "> <span class="entry-text"><span class="entry-name">' +
+          name +
+          '</span><span class="entry-location">' +
+          location +
+          '</span></span> <a class="entry-extension" href="tel:' +
+          tel +
+          '">' +
+          tel +
+          '</a></div>'
+        );
+      }
+      function filterPhones() {
+        const value = document.getElementById('q');
+        elementsLoaded = 0;
+        const q = value.value.toLowerCase();
+        $('#entries').html('');
+
+        var newData = phoneBook.filter((element) => {
+          console.log(element.name.toLowerCase());
+          return (
+            element.name.toLowerCase().search(q) >= 0 ||
+            element.location.toLowerCase().search(q) >= 0 ||
+            element.number.toLowerCase().search(q) >= 0
+          );
+        });
+        $.each(newData, function (index, item) {
+          loading = true;
+          //${}, ${item.location}  ......... ${item.number} [ ${item.type}]
+
+          $('#entries')
+            .append(newEntry(item.name, item.location, item.number))
+            .promise()
+            .done(function () {
+              loading = false;
+              filtered = true;
+            });
+        });
+      }
+      function loadMoreElements() {
+        if (phoneBook.length < 1) {
+          return;
+        }
+        if (loading) {
+          return;
+        }
+        if (filtered) {
+          $('#entries').html('');
+          filtered = false;
+        }
+        console.log(elementsLoaded);
+        console.log(elementsPerPage);
+        var newData = phoneBook.slice(
+          elementsLoaded,
+          elementsLoaded + elementsPerPage
+        );
+        $.each(newData, function (index, item) {
+          loading = true;
+
+          $('#entries')
+            .append(newEntry(item.name, item.location, item.number))
+            .promise()
+            .done(function () {
+              loading = false;
+              filtered = true;
+            });
+        });
+        elementsLoaded += elementsPerPage;
+      }
+
+      function printMousePos(event) {
+        /*document.body.textContent =
+          'clientX: ' + event.clientX + ' - clientY: ' + event.clientY;*/
+        //if(clientX)
+        console.log(event.clientX);
+        console.log(window.innerWidth);
+        if (event.clientX > window.innerWidth / 2) {
+          console.log('next');
+        } else if (event.clientY > window.innerHeight / 2) {
+          console.log('nexxt');
+        } else {
+          elementsLoaded = elementsLoaded - elementsPerPage * 2;
+          console.log('prev');
+        }
+        if (elementsLoaded < 0) {
+          elementsLoaded = 0;
+        }
+        loadMoreElements();
+      }
+
+      document.addEventListener('click', printMousePos);
+    </script>
+  </body>
+</html>
